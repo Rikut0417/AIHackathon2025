@@ -3,7 +3,7 @@ steps:
     args:
       - 'functions'
       - 'deploy'
-      - 'your-function-name'
+      - 'Hack-Syumi'
       - '--runtime=python311'
       - '--region=global'
       - '--source=.'
