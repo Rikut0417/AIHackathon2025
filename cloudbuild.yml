@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'functions'
+      - 'deploy'
+      - 'your-function-name'
+      - '--runtime=python311'
+      - '--region=global'
+      - '--source=.'
+      - '--trigger-http'
+      - '--entry-point=main_function'
