@@ -5,7 +5,7 @@ steps:
       - 'deploy'
       - 'Hack-Syumi'
       - '--runtime=python311'
-      - '--region=global'
+      - '--region=asia-northeast1'
       - '--source=.'
       - '--trigger-http'
       - '--entry-point=main_function'
