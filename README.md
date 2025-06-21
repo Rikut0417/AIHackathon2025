@@ -1,2 +1,0 @@
-# AIHackathon2025
-GoogleAIハッカソンの作業用リポジトリです
