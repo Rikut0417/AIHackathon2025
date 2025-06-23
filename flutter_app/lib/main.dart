@@ -126,16 +126,14 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _hobbiesController = TextEditingController();
-  final List<String> _ageGroups = ['20代', '30代', '40代', '50代', '60代以上'];
-  String? _selectedAgeGroup;
   String? _errorMessage;
 
   // 検索処理
   void _search() {
     // 入力値のバリデーション
-    if (_selectedAgeGroup == null || _hobbiesController.text.trim().isEmpty) {
+    if (_hobbiesController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = '趣味と年代の両方を入力してください。';
+        _errorMessage = '趣味を入力してください。';
       });
       return;
     }
@@ -146,7 +144,6 @@ class _SearchScreenState extends State<SearchScreen> {
       MaterialPageRoute(
         builder: (context) => SearchResultScreen(
           hobbies: _hobbiesController.text.trim(),
-          ageGroup: _selectedAgeGroup!,
         ),
       ),
     );
@@ -276,7 +273,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    'あなたの趣味や年代に合う人を探してみましょう',
+                                    'あなたの趣味に合う人を探してみましょう',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
@@ -353,52 +350,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // 年代選択フィールド
-                        const Text(
-                          '年代',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          value: _selectedAgeGroup,
-                          decoration: const InputDecoration(
-                            hintText: '年代を選択してください',
-                            prefixIcon: Icon(
-                              Icons.calendar_today,
-                              color: Color(0xFF6366F1),
-                              size: 20,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF374151),
-                          ),
-                          icon: const Icon(
-                            Icons.arrow_drop_down,
-                            color: Color(0xFF6366F1),
-                          ),
-                          isExpanded: true,
-                          items: _ageGroups.map<DropdownMenuItem<String>>((
-                            String value,
-                          ) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedAgeGroup = newValue;
-                              if (_errorMessage != null) {
-                                _errorMessage = null;
-                              }
-                            });
-                          },
-                        ),
                         const SizedBox(height: 48),
 
                         // 検索ボタン
