@@ -1,52 +1,59 @@
 import firebase_admin
 from firebase_admin import credentials
-from firebase_admin import db
+from firebase_admin import firestore
 
 # --- 初期化処理 ---
-# 1. サービスアカウントキーのJSONファイルへのパスを指定
-#    ダウンロードした秘密鍵のファイル名を指定してください
-cred = credentials.Certificate("C:/Users/rina_ishida/Downloads/AIhackathon2025-serviceAccountKey.json")
+# Firebaseプロジェクトの初期化
+try:
+    cred = credentials.Certificate("C:/Users/rina_ishida/Downloads/AIhackathon2025-serviceAccountKey.json")
+    # アプリが既に初期化されていないかチェック
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+    print("Firebaseへの接続準備ができました。")
+except Exception as e:
+    print(f"初期化中にエラーが発生しました: {e}")
+    # 初期化に失敗したら、ここで処理を中断
+    exit()
 
-# 2. Firebaseプロジェクトの初期化
-#    'databaseURL'は、FirebaseコンソールのRealtime DatabaseのURLを指定します。
-#    (例: https://<YOUR-PROJECT-ID>-default-rtdb.firebaseio.com/)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://engineeringu-default-rtdb.firebaseio.com/'
-})
-
+db = firestore.client()
 
 # --- データ参照処理 ---
 
-# データベースのルート（一番上の階層）を参照
-ref = db.reference('/')
+# 'profiles'コレクションから特定のIDのデータを取得
+collection_name = 'profiles'
+search_keyword = '旅行'
 
-# ルート直下の全データを取得
-# .get()メソッドでデータをPythonの辞書（dict）やリスト（list）として取得できます
-all_data = ref.get()
-print("--- 全データ ---")
-print(all_data)
-print("\n")
+print(f"'{collection_name}'コレクションから「{search_keyword}」を趣味に含むユーザーを検索します...")
 
+# 条件に一致したユーザーを格納するための空のリスト
+found_users = []
 
-# 特定のパス ('/users') を参照
-users_ref = db.reference('/users')
+try:
+    # コレクションの全ドキュメントを取得
+    all_profiles_stream = db.collection(collection_name).stream()
 
-# '/users' 以下のデータを取得
-users_data = users_ref.get()
-print("--- ユーザーデータ一覧 ---")
-print(users_data)
-print("\n")
+    # ループで1件ずつデータをチェック
+    for doc in all_profiles_stream:
+        profile_data = doc.to_dict()
 
+        # hobbyフィールドの存在、型、キーワードの含有をチェックします
+        if 'hobby' in profile_data and isinstance(profile_data['hobby'], str) and search_keyword in profile_data['hobby']:
+            # 条件に合致したら、結果リストに追加
+            found_users.append({
+                "id": doc.id,
+                "data": profile_data
+            })
 
-# さらに深い階層 ('/users/user01') を参照
-user01_ref = db.reference('/users/user01')
+    # --- ステップ3: 結果の表示 ---
+    print("\n--- 検索結果 ---")
+    if found_users:
+        print(f"{len(found_users)}件見つかりました。")
+        for user in found_users:
+            user_name = user['data'].get('name', '名前なし')
+            user_hobby = user['data'].get('hobby', '')
+            print(f"  - ID: {user['id']}, 名前: {user_name}, 趣味: {user_hobby}")
+    else:
+        print("条件に合うユーザーは見つかりませんでした。")
 
-# '/users/user01' のデータを取得
-user01_data = user01_ref.get()
-print("--- user01 のデータ ---")
-print(user01_data)
-
-# 取得したデータは通常のPython辞書として扱えます
-print(f"名前: {user01_data['name']}")
-print(f"年齢: {user01_data['age']}")
-print(f"スキル: {', '.join(user01_data['skills'])}")
+except Exception as e:
+    print(f"データ取得中にエラーが発生しました: {e}")
