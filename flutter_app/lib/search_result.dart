@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'services/firebase_search_service.dart';
 
 class SearchResultScreen extends StatefulWidget {
   final String hobbies;
-  final String ageGroup;
 
   const SearchResultScreen({
     super.key,
     required this.hobbies,
-    required this.ageGroup,
   });
 
   @override
@@ -17,6 +16,7 @@ class SearchResultScreen extends StatefulWidget {
 class _SearchResultScreenState extends State<SearchResultScreen> {
   List<Map<String, String>> _searchResults = [];
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -27,47 +27,40 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   Future<void> _performSearch() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
-    // モックデータで検索結果をシミュレート
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // 実際のFirebaseデータを検索
+      final result = await FirebaseSearchService.searchUsers(
+        hobby: widget.hobbies,
+      );
 
-    setState(() {
-      _searchResults = [
-        {
-          'name': '山田 太郎',
-          'ageGroup': widget.ageGroup,
-          'hobbies': widget.hobbies,
-          'department': '開発部',
-        },
-        {
-          'name': '佐藤 花子',
-          'ageGroup': widget.ageGroup,
-          'hobbies': widget.hobbies,
-          'department': '企画部',
-        },
-        {
-          'name': '鈴木 一郎',
-          'ageGroup': widget.ageGroup,
-          'hobbies': widget.hobbies,
-          'department': '営業部',
-        },
-        {
-          'name': '田中 美咲',
-          'ageGroup': widget.ageGroup,
-          'hobbies': widget.hobbies,
-          'department': '人事部',
-        },
-        {
-          'name': '伊藤 健太',
-          'ageGroup': widget.ageGroup,
-          'hobbies': widget.hobbies,
-          'department': '経理部',
-        },
-      ];
-      _isLoading = false;
-    });
+      if (result['success'] == true) {
+        final users = result['users'] as List<dynamic>;
+        setState(() {
+          _searchResults = users.map<Map<String, String>>((user) => {
+            'name': user['name']?.toString() ?? '名前なし',
+            'birthplace': user['birthplace']?.toString() ?? '不明',
+            'hobbies': user['hobby']?.toString() ?? '不明',
+            'department': user['department']?.toString() ?? '部署不明',
+          }).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result['error']?.toString() ?? '不明なエラーが発生しました';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'エラーが発生しました: $e';
+        _isLoading = false;
+      });
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -177,84 +170,56 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200, width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF9FAFB),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFFEC4899),
+                                      const Color(0xFFBE185D),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade200, width: 1),
                                 ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.favorite,
-                                      color: Color(0xFFEC4899),
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '趣味: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        widget.hobbies,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF374151),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.white,
+                                  size: 20,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF9FAFB),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade200, width: 1),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.calendar_today,
-                                      color: Color(0xFF6366F1),
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '年代: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    Text(
-                                      widget.ageGroup,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF374151),
-                                      ),
-                                    ),
-                                  ],
+                              const SizedBox(width: 16),
+                              Text(
+                                '検索キーワード: ',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
                                 ),
                               ),
-                            ),
-                          ],
+                              Expanded(
+                                child: Text(
+                                  widget.hobbies,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF374151),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -363,6 +328,57 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
               ),
             ),
           ],
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.red.shade200, width: 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Colors.red.shade600,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'エラーが発生しました',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage!,
+                style: TextStyle(
+                  color: Colors.red.shade600,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _performSearch,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('再試行'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -541,7 +557,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          '年代:',
+                          '出身地:',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -550,7 +566,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          person['ageGroup'] ?? '不明',
+                          person['birthplace'] ?? '不明',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
