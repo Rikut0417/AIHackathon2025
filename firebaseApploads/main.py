@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+
 import os
 from dotenv import load_dotenv
 
@@ -16,6 +17,9 @@ try:
         raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY環境変数が設定されていません")
     
     cred = credentials.Certificate(service_account_path)
+
+
+
     # アプリが既に初期化されていないかチェック
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
@@ -31,7 +35,8 @@ db = firestore.client()
 
 # 'profiles'コレクションから特定のIDのデータを取得
 collection_name = 'profiles'
-search_keyword = 'スポーツ' 
+
+search_keyword = '旅行'
 
 
 print(f"'{collection_name}'コレクションから「{search_keyword}」を趣味に含むユーザーを検索します...")
