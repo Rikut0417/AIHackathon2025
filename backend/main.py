@@ -42,16 +42,28 @@ def search_users():
         # リクエストからJSONデータを取得
         data = request.get_json()
         
-        if not data or 'hobby' not in data:
+        if not data:
             return jsonify({
                 'success': False,
-                'error': 'hobby parameter is required'
+                'error': 'Request data is required'
             }), 400
         
-        search_keyword = data['hobby']
+        if 'hobby' not in data or 'birthplace' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Both hobby and birthplace parameters are required'
+            }), 400
+        
+        hobby_keyword = data.get('hobby', '')
+        birthplace_keyword = data.get('birthplace', '')
         collection_name = 'profiles'
         
-        print(f"'{collection_name}'コレクションから「{search_keyword}」を趣味に含むユーザーを検索します...")
+        search_info = []
+        if hobby_keyword:
+            search_info.append(f'趣味「{hobby_keyword}」')
+        if birthplace_keyword:
+            search_info.append(f'出身地「{birthplace_keyword}」')
+        print(f"'{collection_name}'コレクションから{' かつ '.join(search_info)}を含むユーザーを検索します...")
         
         # 条件に一致したユーザーを格納するための空のリスト
         found_users = []
@@ -63,8 +75,18 @@ def search_users():
         for doc in all_profiles_stream:
             profile_data = doc.to_dict()
             
-            # hobbyフィールドの存在、型、キーワードの含有をチェックします
-            if 'hobby' in profile_data and isinstance(profile_data['hobby'], str) and search_keyword in profile_data['hobby']:
+            # hobbyおよびbirthplaceフィールドのチェック
+            hobby_match = False
+            birthplace_match = False
+            
+            if hobby_keyword and 'hobby' in profile_data and isinstance(profile_data['hobby'], str):
+                hobby_match = hobby_keyword in profile_data['hobby']
+            
+            if birthplace_keyword and 'birthplace' in profile_data and isinstance(profile_data['birthplace'], str):
+                birthplace_match = birthplace_keyword in profile_data['birthplace']
+            
+            # 両方ともマッチする必要がある（AND検索）
+            if hobby_match and birthplace_match:
                 # 条件に合致したら、結果リストに追加
                 found_users.append({
                     "name": profile_data.get('name', '名前なし'),
