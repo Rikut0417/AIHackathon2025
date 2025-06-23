@@ -1,0 +1,8 @@
+# Firebaseの秘密鍵
+AIhackathon2025-serviceAccountKey.json
+
+# Pythonの仮想環境フォルダ (もし使っているなら)
+venv/
+
+# Pythonのキャッシュフォルダ
+__pycache__/

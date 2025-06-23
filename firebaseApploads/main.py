@@ -1,15 +1,27 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+import os
 
 # --- 初期化処理 ---
+CRED_FILE = "AIhackathon2025-serviceAccountKey.json"
 # Firebaseプロジェクトの初期化
 try:
-    cred = credentials.Certificate("C:/Users/rina_ishida/Downloads/AIhackathon2025-serviceAccountKey.json")
+    # ファイルの存在をチェック
+    if not os.path.exists(CRED_FILE):
+        raise FileNotFoundError
+
+    cred = credentials.Certificate(CRED_FILE)
     # アプリが既に初期化されていないかチェック
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
     print("Firebaseへの接続準備ができました。")
+
+except FileNotFoundError:
+    print(f"エラー: 秘密鍵ファイル '{CRED_FILE}' が見つかりません。")
+    print("このスクリプトと同じ階層に、管理者から共有された秘密鍵ファイルを配置してください。")
+    exit() # 処理を中断
+
 except Exception as e:
     print(f"初期化中にエラーが発生しました: {e}")
     # 初期化に失敗したら、ここで処理を中断
