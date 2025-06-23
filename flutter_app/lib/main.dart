@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'login.dart';
+import 'search_result.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,120 +8,515 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '検索アプリ',
+      debugShowCheckedModeBanner: false,
+      // --- ▼▼▼ Channel.io風のデザインテーマを定義 ▼▼▼ ---
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // Channel.io風のカラーパレット
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6366F1), // インディゴ/パープル系のメインカラー
+          background: const Color(0xFFFAFAFA), // 非常に薄いグレー背景
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+
+        // モダンなテキストテーマ
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            fontSize: 16.0,
+            height: 1.6,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF374151),
+          ),
+          titleLarge: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF111827),
+          ),
+          headlineSmall: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF111827),
+          ),
+        ),
+
+        // クリーンなAppBarテーマ
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Color(0xFF111827),
+          elevation: 0,
+          scrolledUnderElevation: 1,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF111827),
+          ),
+        ),
+
+        // モダンな入力フォームテーマ
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2.0),
+          ),
+          hintStyle: TextStyle(
+            color: Colors.grey.shade500,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+
+        // Channel.io風のボタンテーマ
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6366F1),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        // テキストボタンテーマ
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFF6366F1),
+            textStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // --- ▲▲▲ テーマの定義ここまで ▲▲▲ ---
+      home: const SearchScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _SearchScreenState extends State<SearchScreen> {
+  final _hobbiesController = TextEditingController();
+  final List<String> _ageGroups = ['20代', '30代', '40代', '50代', '60代以上'];
+  String? _selectedAgeGroup;
+  String? _errorMessage;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  // 検索処理
+  void _search() {
+    // 入力値のバリデーション
+    if (_selectedAgeGroup == null || _hobbiesController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = '趣味と年代の両方を入力してください。';
+      });
+      return;
+    }
+
+    // 検索結果画面に遷移
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchResultScreen(
+          hobbies: _hobbiesController.text.trim(),
+          ageGroup: _selectedAgeGroup!,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+        title: const Text('プロフィール検索'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                // ログイン画面に遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 16,
+                ),
+                minimumSize: const Size(80, 36),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Text('ログイン'),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: Colors.grey.shade300, height: 1.0),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFFFAFAFA),
+              Colors.grey.shade50,
+            ],
+          ),
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // メインの検索フォーム
+                  Container(
+                    padding: const EdgeInsets.all(40.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24.0),
+                      border: Border.all(color: Colors.grey.shade100, width: 1.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ヘッダー部分
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF6366F1),
+                                    const Color(0xFF8B5CF6),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.search,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'プロフィール検索',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'あなたの趣味や年代に合う人を探してみましょう',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+
+                        // エラーメッセージ表示
+                        if (_errorMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.red.shade200, width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red.shade600,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // 趣味入力フィールド
+                        const Text(
+                          '趣味',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _hobbiesController,
+                          decoration: const InputDecoration(
+                            hintText: '例: 読書, 旅行, 映画鑑賞',
+                            prefixIcon: Icon(
+                              Icons.favorite_outline,
+                              color: Color(0xFF6366F1),
+                              size: 20,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (_errorMessage != null) {
+                              setState(() {
+                                _errorMessage = null;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 28),
+
+                        // 年代選択フィールド
+                        const Text(
+                          '年代',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: _selectedAgeGroup,
+                          decoration: const InputDecoration(
+                            hintText: '年代を選択してください',
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: Color(0xFF6366F1),
+                              size: 20,
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF374151),
+                          ),
+                          icon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: Color(0xFF6366F1),
+                          ),
+                          isExpanded: true,
+                          items: _ageGroups.map<DropdownMenuItem<String>>((
+                            String value,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedAgeGroup = newValue;
+                              if (_errorMessage != null) {
+                                _errorMessage = null;
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 48),
+
+                        // 検索ボタン
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _search,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6366F1),
+                              elevation: 0,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.search, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  '検索する',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade200, width: 1.0),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '© 2025 プロフィール検索アプリ',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      // プライバシーポリシーの処理
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF6366F1),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: const Text('プライバシーポリシー'),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () {
+                      // 利用規約の処理
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF6366F1),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    child: const Text('利用規約'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+
+  @override
+  void dispose() {
+    _hobbiesController.dispose();
+    super.dispose();
   }
 }
