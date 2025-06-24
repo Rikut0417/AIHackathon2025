@@ -26,6 +26,25 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     _performSearch();
   }
 
+  // 趣味データを適切に処理するヘルパー関数
+  String _processHobbyData(dynamic hobby) {
+    if (hobby == null) return '不明';
+    
+    if (hobby is List) {
+      return hobby.join(', ');
+    } else if (hobby is String) {
+      // 文字列が配列の表現形式 "[item1, item2]" の場合
+      String hobbyStr = hobby.trim();
+      if (hobbyStr.startsWith('[') && hobbyStr.endsWith(']')) {
+        hobbyStr = hobbyStr.substring(1, hobbyStr.length - 1);
+        return hobbyStr.split(',').map((e) => e.trim()).join(', ');
+      }
+      return hobbyStr;
+    }
+    
+    return hobby.toString();
+  }
+
   Future<void> _performSearch() async {
     setState(() {
       _isLoading = true;
@@ -45,8 +64,10 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
           _searchResults = users.map<Map<String, String>>((user) => {
             'name': user['name']?.toString() ?? '名前なし',
             'birthplace': user['birthplace']?.toString() ?? '不明',
-            'hobbies': user['hobby']?.toString() ?? '不明',
+            'hobbies': _processHobbyData(user['hobby']),
             'department': user['department']?.toString() ?? '部署不明',
+            'matched_hobby': user['matched_hobby']?.toString() ?? '',
+            'matched_birthplace': user['matched_birthplace']?.toString() ?? '',
           }).toList();
           _isLoading = false;
         });
@@ -305,6 +326,57 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     );
   }
 
+  // 一致した部分を赤文字でハイライトするヘルパー関数
+  Widget _buildHighlightedText(String text, String searchTerm) {
+    if (searchTerm.isEmpty) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF374151),
+        ),
+      );
+    }
+
+    // テキストを単語に分割（カンマとスペースで区切る）
+    final words = text.split(RegExp(r'[,\s]+'));
+    List<TextSpan> spans = [];
+    
+    for (int i = 0; i < words.length; i++) {
+      final word = words[i].trim();
+      if (word.isEmpty) continue;
+      
+      // 単語に検索語が含まれているかチェック（部分一致）
+      final isMatch = word.toLowerCase().contains(searchTerm.toLowerCase());
+      
+      spans.add(TextSpan(
+        text: word,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: isMatch ? Colors.red : const Color(0xFF374151),
+        ),
+      ));
+      
+      // 最後の単語でなければ区切り文字を追加
+      if (i < words.length - 1) {
+        spans.add(const TextSpan(
+          text: ', ',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF374151),
+          ),
+        ));
+      }
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
+    );
+  }
+
   Widget _buildResultView() {
     if (_isLoading) {
       return const Center(
@@ -536,41 +608,6 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                 child: Column(
                   children: [
                     Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.calendar_today,
-                            size: 18,
-                            color: Color(0xFF6366F1),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '出身地:',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          person['birthplace'] ?? '不明',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
@@ -596,14 +633,41 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
+                          child: _buildHighlightedText(
                             person['hobbies'] ?? '不明',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF374151),
-                            ),
+                            person['matched_hobby'] ?? '',
                           ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6366F1).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_today,
+                            size: 18,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '出身地:',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildHighlightedText(
+                          person['birthplace'] ?? '不明',
+                          person['matched_birthplace'] ?? '',
                         ),
                       ],
                     ),
