@@ -167,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
                   return FadeTransition(
                     opacity: _logoAnimation,
                     child: const Text(
-                      'AIハッカソン2025',
+                      'ProfileAI',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
