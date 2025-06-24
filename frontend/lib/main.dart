@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'search_result.dart';
+import 'splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -112,7 +113,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // --- ▲▲▲ テーマの定義ここまで ▲▲▲ ---
-      home: const SearchScreen(),
+      home: const SplashScreen(),
     );
   }
 }
