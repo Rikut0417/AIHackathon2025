@@ -335,7 +335,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         TextField(
                           controller: _hobbiesController,
                           decoration: const InputDecoration(
-                            hintText: '例: 読書, 旅行, 映画鑑賞',
+                            hintText: '趣味を入力してください',
                             prefixIcon: Icon(
                               Icons.favorite_outline,
                               color: Color(0xFF6366F1),
@@ -365,7 +365,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         TextField(
                           controller: _birthplaceController,
                           decoration: const InputDecoration(
-                            hintText: '例: 東京都, 大阪府, 福岡県',
+                            hintText: '出身地を入力してください',
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: Color(0xFF6366F1),
