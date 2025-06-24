@@ -3,35 +3,28 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from firebase_admin.firestore import FieldFilter
 
 import os
 from dotenv import load_dotenv
 
-# .envファイルを読み込み
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # CORS を有効にする
+CORS(app)
 
-# --- 初期化処理 ---
-# Firebaseプロジェクトの初期化
 try:
-    # 環境変数から秘密鍵のパスを取得
     service_account_path = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
     if not service_account_path:
         raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY環境変数が設定されていません")
-    
+
     cred = credentials.Certificate(service_account_path)
 
-
-
-    # アプリが既に初期化されていないかチェック
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
     print("Firebaseへの接続準備ができました。")
 except Exception as e:
     print(f"初期化中にエラーが発生しました: {e}")
-    # 初期化に失敗したら、ここで処理を中断
     exit()
 
 db = firestore.client()
@@ -39,70 +32,43 @@ db = firestore.client()
 @app.route('/search', methods=['POST'])
 def search_users():
     try:
-        # リクエストからJSONデータを取得
         data = request.get_json()
-        
-        if not data:
+
+        if not data or 'hobby' not in data:
             return jsonify({
                 'success': False,
-                'error': 'Request data is required'
+                'error': 'hobby parameter is required'
             }), 400
-        
-        if 'hobby' not in data or 'birthplace' not in data:
-            return jsonify({
-                'success': False,
-                'error': 'Both hobby and birthplace parameters are required'
-            }), 400
-        
-        hobby_keyword = data.get('hobby', '')
-        birthplace_keyword = data.get('birthplace', '')
+
+        search_keyword = data['hobby']
         collection_name = 'profiles'
-        
-        search_info = []
-        if hobby_keyword:
-            search_info.append(f'趣味「{hobby_keyword}」')
-        if birthplace_keyword:
-            search_info.append(f'出身地「{birthplace_keyword}」')
-        print(f"'{collection_name}'コレクションから{' かつ '.join(search_info)}を含むユーザーを検索します...")
-        
-        # 条件に一致したユーザーを格納するための空のリスト
+
+        print(f"'{collection_name}'コレクションから趣味に「{search_keyword}」を含むユーザーを検索します...")
+
         found_users = []
-        
-        # コレクションの全ドキュメントを取得
-        all_profiles_stream = db.collection(collection_name).stream()
-        
-        # ループで1件ずつデータをチェック
-        for doc in all_profiles_stream:
+
+        query = db.collection(collection_name).where(
+            filter=FieldFilter('hobby', 'array_contains', search_keyword)
+        )
+        found_docs_stream = query.stream()
+
+        for doc in found_docs_stream:
             profile_data = doc.to_dict()
-            
-            # hobbyおよびbirthplaceフィールドのチェック
-            hobby_match = False
-            birthplace_match = False
-            
-            if hobby_keyword and 'hobby' in profile_data and isinstance(profile_data['hobby'], str):
-                hobby_match = hobby_keyword in profile_data['hobby']
-            
-            if birthplace_keyword and 'birthplace' in profile_data and isinstance(profile_data['birthplace'], str):
-                birthplace_match = birthplace_keyword in profile_data['birthplace']
-            
-            # 両方ともマッチする必要がある（AND検索）
-            if hobby_match and birthplace_match:
-                # 条件に合致したら、結果リストに追加
-                found_users.append({
-                    "name": profile_data.get('name', '名前なし'),
-                    "hobby": profile_data.get('hobby', ''),
-                    "birthplace": profile_data.get('birthplace', '不明'),
-                    "department": profile_data.get('department', '部署不明')
-                })
-        
+            found_users.append({
+                "name": profile_data.get('name', '名前なし'),
+                "hobby": profile_data.get('hobby', []),
+                "birthplace": profile_data.get('birthplace', '不明'),
+                "department": profile_data.get('department', '部署不明')
+            })
+
         print(f"{len(found_users)}件見つかりました。")
-        
+
         return jsonify({
             'success': True,
             'users': found_users,
             'count': len(found_users)
         })
-        
+
     except Exception as e:
         print(f"データ取得中にエラーが発生しました: {e}")
         return jsonify({
