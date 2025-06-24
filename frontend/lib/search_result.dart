@@ -3,10 +3,12 @@ import 'services/firebase_search_service.dart';
 
 class SearchResultScreen extends StatefulWidget {
   final String hobbies;
+  final String birthplace;
 
   const SearchResultScreen({
     super.key,
     required this.hobbies,
+    required this.birthplace,
   });
 
   @override
@@ -34,6 +36,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
       // 実際のFirebaseデータを検索
       final result = await FirebaseSearchService.searchUsers(
         hobby: widget.hobbies,
+        birthplace: widget.birthplace,
       );
 
       if (result['success'] == true) {
@@ -170,56 +173,47 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade200, width: 1),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(0xFFEC4899),
-                                      const Color(0xFFBE185D),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
                                   Icons.favorite,
-                                  color: Colors.white,
-                                  size: 20,
+                                  size: 18,
+                                  color: Colors.pink.shade400,
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                '検索キーワード: ',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  widget.hobbies,
+                                const SizedBox(width: 8),
+                                Text(
+                                  '趣味: ${widget.hobbies}',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF374151),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 18,
+                                  color: Colors.blue.shade400,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '出身地: ${widget.birthplace}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF374151),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),

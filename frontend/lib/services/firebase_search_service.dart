@@ -6,6 +6,7 @@ class FirebaseSearchService {
 
   static Future<Map<String, dynamic>> searchUsers({
     required String hobby,
+    required String birthplace,
   }) async {
     try {
       final url = Uri.parse('$baseUrl/search');
@@ -17,6 +18,7 @@ class FirebaseSearchService {
         },
         body: jsonEncode({
           'hobby': hobby,
+          'birthplace': birthplace,
         }),
       );
 
