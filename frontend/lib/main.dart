@@ -126,14 +126,15 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _hobbiesController = TextEditingController();
+  final _birthplaceController = TextEditingController();
   String? _errorMessage;
 
   // 検索処理
   void _search() {
     // 入力値のバリデーション
-    if (_hobbiesController.text.trim().isEmpty) {
+    if (_hobbiesController.text.trim().isEmpty || _birthplaceController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = '趣味を入力してください。';
+        _errorMessage = '趣味と出身地の両方を入力してください。';
       });
       return;
     }
@@ -144,6 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
       MaterialPageRoute(
         builder: (context) => SearchResultScreen(
           hobbies: _hobbiesController.text.trim(),
+          birthplace: _birthplaceController.text.trim(),
         ),
       ),
     );
@@ -273,7 +275,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    'あなたの趣味に合う人を探してみましょう',
+                                    '趣味と出身地の両方が一致する人を探してみましょう',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
@@ -350,6 +352,34 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         const SizedBox(height: 28),
 
+                        // 出身地入力フィールド
+                        const Text(
+                          '出身地',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _birthplaceController,
+                          decoration: const InputDecoration(
+                            hintText: '例: 東京都, 大阪府, 福岡県',
+                            prefixIcon: Icon(
+                              Icons.location_on_outlined,
+                              color: Color(0xFF6366F1),
+                              size: 20,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (_errorMessage != null) {
+                              setState(() {
+                                _errorMessage = null;
+                              });
+                            }
+                          },
+                        ),
                         const SizedBox(height: 48),
 
                         // 検索ボタン
@@ -468,6 +498,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void dispose() {
     _hobbiesController.dispose();
+    _birthplaceController.dispose();
     super.dispose();
   }
 }
