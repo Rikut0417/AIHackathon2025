@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'home_screen.dart';
+import 'onboarding_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -133,10 +134,25 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isSignUp ? 'アカウント作成' : 'ログイン'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // ナビゲーションスタックに前の画面がある場合のみ戻るボタンを表示
+        automaticallyImplyLeading: Navigator.canPop(context),
+        leading: Navigator.canPop(context) 
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                // 安全に戻る処理を実行
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  // フォールバック: オンボーディング画面に戻る
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                  );
+                }
+              },
+            )
+          : null,
       ),
       body: Container(
         decoration: BoxDecoration(
