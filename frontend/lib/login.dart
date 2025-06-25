@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _isSignUp ? '新しいアカウントを作成してください' : 'アカウントにアクセスしてください',
+                                _isSignUp ? '新しいアカウントを作成してください' : 'アカウントにログインしてください',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -274,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: _emailController,
                           decoration: InputDecoration(
-                            hintText: 'example@email.com',
+                            hintText: 'メールアドレスを入力してください',
                             prefixIcon: const Icon(
                               Icons.email_outlined,
                               color: Color(0xFF6366F1),
