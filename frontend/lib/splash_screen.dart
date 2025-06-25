@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'onboarding_screen.dart';
-import 'main.dart';
 
 /// スプラッシュ画面
 /// アプリ起動時に3秒間表示し、初回起動判定を行う
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  final bool isFirstLaunch;
+  
+  const SplashScreen({Key? key, this.isFirstLaunch = true}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -18,10 +17,15 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingController;
   late Animation<double> _logoAnimation;
   late Animation<double> _loadingAnimation;
+  
+  String _loadingText = '初期化中...'; // デフォルトは初期化中
 
   @override
   void initState() {
     super.initState();
+    
+    // パラメータに基づいてローディングテキストを設定
+    _loadingText = widget.isFirstLaunch ? '初期化中...' : 'ローディング中...';
 
     // ロゴアニメーション設定
     _logoController = AnimationController(
@@ -52,51 +56,14 @@ class _SplashScreenState extends State<SplashScreen>
     ));
 
     // アニメーション開始
-    _startAnimations();
-
-    // 3秒後に画面遷移
-    _navigateToNextScreen();
-  }
-
-  /// アニメーション開始
-  void _startAnimations() {
     _logoController.forward();
     Future.delayed(const Duration(milliseconds: 500), () {
-      _loadingController.repeat();
-    });
-  }
-
-  /// 次の画面に遷移
-  void _navigateToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 3));
-
-    if (!mounted) return;
-
-    try {
-      // 初回起動判定
-      final prefs = await SharedPreferences.getInstance();
-      final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
-
-      if (isFirstLaunch) {
-        // 初回起動の場合：オンボーディング画面へ
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        );
-      } else {
-        // 2回目以降：メイン画面へ
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchScreen()),
-        );
+      if (mounted) {
+        _loadingController.forward();
       }
-    } catch (e) {
-      // エラーの場合はメイン画面へ
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const SearchScreen()),
-      );
-    }
+    });
+
+    // 自動遷移を削除 - AuthWrapperに認証状態管理を任せる
   }
 
   @override
@@ -221,9 +188,9 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const Text(
-                          '初期化中...',
-                          style: TextStyle(
+                        Text(
+                          _loadingText,
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.white70,
                           ),

@@ -3,6 +3,7 @@ import 'constants/app_colors.dart';
 import 'widgets/common_widgets.dart';
 import 'login.dart';
 import 'search_result.dart';
+import 'services/auth_service.dart';
 
 /// 統一デザインによる新しいホーム画面
 /// スプラッシュ・オンボーディング画面との一貫性を保つ
@@ -125,22 +126,109 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// ログイン画面に遷移
-  void _navigateToLogin() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const LoginScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
+  /// ログアウト処理
+  void _logout() async {
+    // 既にログアウト処理中の場合は何もしない
+    if (_isLoading) return;
+    
+    try {
+      // ユーザーに確認ダイアログを表示
+      bool shouldLogout = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('ログアウト'),
+          content: const Text('本当にログアウトしますか？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('ログアウト'),
+            ),
+          ],
+        ),
+      ) ?? false;
+
+      if (shouldLogout && mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+
+        // ローディング表示
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        // ログアウト実行
+        await AuthService().signOut();
+        
+        // 少し待ってから画面を閉じる（認証状態の変更を待つ）
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          // ローディングダイアログを閉じる
+          Navigator.of(context).pop();
+          
+          // ログアウト成功メッセージ
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ログアウトしました'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
           );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
+          
+          // 追加: より確実にするためページをリロード
+          await Future.delayed(const Duration(milliseconds: 1000));
+          // Web環境でのページリロード
+          if (mounted) {
+            // 直接ログイン画面に遷移
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+          
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      // エラーハンドリング
+      if (mounted) {
+        Navigator.of(context).pop(); // ローディングダイアログを閉じる
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ログアウトに失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // エラーハンドリング
+      if (mounted) {
+        Navigator.of(context).pop(); // ローディングダイアログを閉じる
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ログアウトに失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -266,10 +354,10 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
           
-          // ログインボタン
+          // ログアウトボタン
           AppButton(
-            text: 'ログイン',
-            onPressed: _navigateToLogin,
+            text: 'ログアウト',
+            onPressed: _logout,
             height: 40,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,

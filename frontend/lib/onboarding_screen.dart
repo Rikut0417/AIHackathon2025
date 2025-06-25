@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main.dart';
+import 'login.dart';
 
 /// オンボーディング画面
 /// アプリの主要機能を3-4ページで紹介
@@ -70,16 +70,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (!mounted) return;
 
-      // メイン画面に遷移
+      // オンボーディング完了後は必ずログイン画面に遷移
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SearchScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } catch (e) {
-      // エラーの場合もメイン画面に遷移
+      // エラーの場合もログイン画面に遷移
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SearchScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }
