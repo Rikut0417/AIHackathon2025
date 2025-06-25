@@ -44,24 +44,50 @@ def search_users():
         search_birthplace = data.get('birthplace', '')
         collection_name = 'profiles'
 
-        print(f"'{collection_name}'コレクションから趣味に「{search_hobby}」を含むユーザーを検索します...")
-
         found_users = []
 
-        # 趣味での検索
-        hobby_query = db.collection(collection_name).where(
-            filter=FieldFilter('hobby', 'array_contains', search_hobby)
-        )
-        hobby_docs = hobby_query.stream()
+        # 両方の条件が入力されている場合はAND検索（両方一致）
+        if search_hobby and search_birthplace:
+            print(f"'{collection_name}'コレクションから趣味に「{search_hobby}」を含み、かつ出身地に「{search_birthplace}」を含むユーザーを検索します...")
+            
+            # 趣味で検索してから出身地でフィルタリング
+            hobby_query = db.collection(collection_name).where(
+                filter=FieldFilter('hobby', 'array_contains', search_hobby)
+            )
+            hobby_docs = hobby_query.stream()
 
-        for doc in hobby_docs:
-            profile_data = doc.to_dict()
-            user_birthplace = profile_data.get('birthplace', '不明')
+            for doc in hobby_docs:
+                profile_data = doc.to_dict()
+                user_birthplace = profile_data.get('birthplace', '不明')
+                
+                # 出身地の条件もチェック（AND条件）
+                if search_birthplace in user_birthplace:
+                    # 趣味の配列を文字列に変換
+                    hobby_list = profile_data.get('hobby', [])
+                    hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
+                    
+                    found_users.append({
+                        "name": profile_data.get('name', '名前なし'),
+                        "hobby": hobby_string,
+                        "birthplace": user_birthplace,
+                        "department": profile_data.get('department', '部署不明'),
+                        "matched_hobby": search_hobby,
+                        "matched_birthplace": search_birthplace
+                    })
+
+        # 趣味のみが入力されている場合
+        elif search_hobby and not search_birthplace:
+            print(f"'{collection_name}'コレクションから趣味に「{search_hobby}」を含むユーザーを検索します...")
             
-            # 出身地の条件もチェック
-            birthplace_match = not search_birthplace or search_birthplace in user_birthplace
-            
-            if birthplace_match:
+            hobby_query = db.collection(collection_name).where(
+                filter=FieldFilter('hobby', 'array_contains', search_hobby)
+            )
+            hobby_docs = hobby_query.stream()
+
+            for doc in hobby_docs:
+                profile_data = doc.to_dict()
+                user_birthplace = profile_data.get('birthplace', '不明')
+                
                 # 趣味の配列を文字列に変換
                 hobby_list = profile_data.get('hobby', [])
                 hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
@@ -72,8 +98,32 @@ def search_users():
                     "birthplace": user_birthplace,
                     "department": profile_data.get('department', '部署不明'),
                     "matched_hobby": search_hobby,
-                    "matched_birthplace": search_birthplace if search_birthplace and search_birthplace in user_birthplace else None
+                    "matched_birthplace": None
                 })
+
+        # 出身地のみが入力されている場合
+        elif not search_hobby and search_birthplace:
+            print(f"'{collection_name}'コレクションから出身地に「{search_birthplace}」を含むユーザーを検索します...")
+            
+            all_docs = db.collection(collection_name).stream()
+            
+            for doc in all_docs:
+                profile_data = doc.to_dict()
+                user_birthplace = profile_data.get('birthplace', '不明')
+                
+                if search_birthplace in user_birthplace:
+                    # 趣味の配列を文字列に変換
+                    hobby_list = profile_data.get('hobby', [])
+                    hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
+                    
+                    found_users.append({
+                        "name": profile_data.get('name', '名前なし'),
+                        "hobby": hobby_string,
+                        "birthplace": user_birthplace,
+                        "department": profile_data.get('department', '部署不明'),
+                        "matched_hobby": None,
+                        "matched_birthplace": search_birthplace
+                    })
 
         print(f"{len(found_users)}件見つかりました。")
 
