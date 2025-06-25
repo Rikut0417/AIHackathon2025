@@ -198,6 +198,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final int? maxLines;
   final Function(String)? onChanged;
+  final Function(String)? onSubmitted;
   final String? Function(String?)? validator;
   final bool enabled;
 
@@ -213,6 +214,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.maxLines = 1,
     this.onChanged,
+    this.onSubmitted,
     this.validator,
     this.enabled = true,
   }) : super(key: key);
@@ -225,6 +227,7 @@ class AppTextField extends StatelessWidget {
       obscureText: obscureText,
       maxLines: maxLines,
       onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
       validator: validator,
       enabled: enabled,
       style: const TextStyle(
