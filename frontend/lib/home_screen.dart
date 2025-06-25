@@ -514,6 +514,7 @@ class _HomeScreenState extends State<HomeScreen>
             controller: _hobbiesController,
             hintText: '例: 読書、映画、スポーツ（空欄でも検索可能）',
             prefixIcon: Icons.interests,
+            onSubmitted: (_) => _search(),
           ),
 
           const SizedBox(height: AppSpacing.lg),
@@ -531,6 +532,7 @@ class _HomeScreenState extends State<HomeScreen>
             controller: _birthplaceController,
             hintText: '例: 東京、大阪、福岡（空欄でも検索可能）',
             prefixIcon: Icons.location_on,
+            onSubmitted: (_) => _search(),
           ),
 
           const SizedBox(height: AppSpacing.xl),
