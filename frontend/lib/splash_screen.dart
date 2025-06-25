@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 /// スプラッシュ画面
 /// アプリ起動時に3秒間表示し、初回起動判定を行う
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  final bool isFirstLaunch;
+  
+  const SplashScreen({Key? key, this.isFirstLaunch = true}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -15,10 +17,15 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingController;
   late Animation<double> _logoAnimation;
   late Animation<double> _loadingAnimation;
+  
+  String _loadingText = '初期化中...'; // デフォルトは初期化中
 
   @override
   void initState() {
     super.initState();
+    
+    // パラメータに基づいてローディングテキストを設定
+    _loadingText = widget.isFirstLaunch ? '初期化中...' : 'ローディング中...';
 
     // ロゴアニメーション設定
     _logoController = AnimationController(
@@ -181,9 +188,9 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const Text(
-                          '初期化中...',
-                          style: TextStyle(
+                        Text(
+                          _loadingText,
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.white70,
                           ),

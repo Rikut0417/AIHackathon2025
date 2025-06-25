@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'splash_screen.dart';
+import 'onboarding_screen.dart';
 import 'home_screen.dart';
 import 'login.dart';
 import 'constants/app_colors.dart';
@@ -79,8 +81,62 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isFirstLaunchChecked = false;
+  bool _isFirstLaunch = true;
+  bool _splashComplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  // アプリ初期化（スプラッシュ画面の最低表示時間を確保）
+  Future<void> _initializeApp() async {
+    // 最低3秒間スプラッシュ画面を表示
+    final splashTimer = Future.delayed(const Duration(seconds: 3));
+    final firstLaunchCheck = _checkFirstLaunch();
+    
+    // 両方の処理が完了するまで待機
+    await Future.wait([splashTimer, firstLaunchCheck]);
+    
+    setState(() {
+      _splashComplete = true;
+    });
+  }
+
+  // 初回起動チェック
+  Future<void> _checkFirstLaunch() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+      
+      setState(() {
+        _isFirstLaunch = isFirstLaunch;
+        _isFirstLaunchChecked = true;
+      });
+    } catch (e) {
+      print('❌ Error checking first launch: $e');
+      setState(() {
+        _isFirstLaunch = false;
+        _isFirstLaunchChecked = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // スプラッシュ画面表示期間またはデータロード中はスプラッシュ画面を表示
+    if (!_splashComplete || !_isFirstLaunchChecked) {
+      return SplashScreen(isFirstLaunch: _isFirstLaunch);
+    }
+
+    // 初回起動の場合はオンボーディング画面
+    if (_isFirstLaunch) {
+      return const OnboardingScreen();
+    }
+
+    // 2回目以降の起動：認証状態をチェック
     return StreamBuilder<User?>(
       stream: AuthService().authStateChanges,
       builder: (context, snapshot) {
@@ -95,10 +151,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return const LoginScreen();
         }
         
-        // 接続待機中はスプラッシュ画面
+        // 接続待機中はスプラッシュ画面（ローディング中）
         if (snapshot.connectionState == ConnectionState.waiting) {
-          print('⏳ Showing SplashScreen (waiting)');
-          return const SplashScreen();
+          print('⏳ Showing SplashScreen (loading)');
+          return const SplashScreen(isFirstLaunch: false);
         }
         
         // データがある（ログイン済み）の場合はホーム画面
