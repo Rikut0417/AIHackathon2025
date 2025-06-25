@@ -1,37 +1,70 @@
 # AI ハッカソン 2025 - ProfileAI
 
-<div align="center">
-  <h2>🤖 AI技術を活用したプロフィール検索アプリ</h2>
-  <p>趣味と出身地から最適なマッチングを見つけるFlutter × Pythonアプリケーション</p>
-  
-  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
-</div>
+## 🛠️ 技術スタック
+
+| 分野 | 技術 | 目的 |
+|------|------|------|
+| **フロントエンド** | Flutter (Dart) | クロスプラットフォーム対応のUIアプリ |
+| **バックエンド** | Python (Flask) | API サーバー・データ処理 |
+| **データベース** | Firebase Realtime DB | ユーザーデータ・検索結果保存 |
+| **認証** | Firebase Auth | ユーザー認証・セキュリティ |
+| **デプロイ** | Google Cloud Platform | 本番環境への配信 |
 
 ## 🚀 クイックスタート（新規参画者向け）
 
 ### 📋 前提条件
 
-- [Flutter](https://flutter.dev/docs/get-started/install) (最新安定版)
-- [Python](https://python.org/downloads/) (3.8 以上)
-- [Git](https://git-scm.com/)
+以下のソフトウェアをインストールしてください：
 
-### ⚡ 自動セットアップ
+| ソフトウェア | バージョン | インストールリンク | 必須度 |
+|-------------|-----------|------------------|-------|
+| **Flutter** | 最新安定版 | [flutter.dev](https://flutter.dev/docs/get-started/install) | 🔴 必須 |
+| **Python** | 3.8 以上 | [python.org](https://python.org/downloads/) | 🔴 必須 |
+| **Git** | 最新版 | [git-scm.com](https://git-scm.com/) | 🔴 必須 |
+| **VS Code** | 最新版 | [code.visualstudio.com](https://code.visualstudio.com/) | 🟡 推奨 |
 
-#### 🖥️ フロントエンド（推奨）
+#### 1️⃣ リポジトリのクローン
 
-````bash
+```bash
+git clone <repository-url>
+cd AIHackathon2025
+```
+
+#### 2️⃣ フロントエンド（Flutter）の設定
+
+```bash
 cd frontend
-# Linux/macOS
-./setup.sh
 
-#### 🐍 バックエンド
+#セットアップ
+flutter pub get
+```
+
+#### 3️⃣ バックエンド（Python）の設定
+
 ```bash
 cd backend
-pip install -r requirements.txt
+
+# 仮想環境の作成（推奨）
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate     # Windows
+
+# 依存関係のインストール
+pip install -r ../requirements.txt
+
+```
+
+#### 4️⃣ 開発環境の確認
+
+### フロントエンド
+
+cd frontend
+flutter run
+
+### バックエンド
+
+cd backend
 python main.py
-````
 
 ## 📁 プロジェクト構成
 
@@ -52,48 +85,31 @@ AIHackathon2025/
 └── README.md           # このファイル
 ```
 
-### フロントエンド
+```
 
-cd frontend
-flutter run
+### 💡 開発のヒント
 
-### バックエンド
+- **フロントエンド**: `lib/` フォルダ内のファイルを編集
+- **バックエンド**: `backend/main.py` を中心に開発
+- **デザイン**: `lib/constants/app_colors.dart` で統一カラーを管理
+- **テスト**: 新機能追加時は必ずテストも追加
 
-cd backend
-python main.py
 
-### 🎨 **統一デザインシステム**
 
-- スプラッシュ・オンボーディング・メイン画面の完全統一
-- グラデーション・アニメーション効果
-- レスポンシブデザイン
+### よくある問題と解決方法
 
-### 🔍 **スマート検索**
+| 問題 | 症状 | 解決方法 |
+|------|------|----------|
+| **Flutter 環境エラー** | `flutter doctor` でエラー | 不足しているツールをインストール |
+| **依存関係エラー** | `pub get` 失敗 | `flutter clean && flutter pub get` |
+| **ビルドエラー** | コンパイルエラー | `flutter clean && flutter pub upgrade` |
+| **サーバー接続エラー** | API 呼び出し失敗 | バックエンドが起動しているか確認 |
+| **CORS エラー** | Web でAPI エラー | `--web-browser-flag "--disable-web-security"` |
 
-- **両方入力時**: 趣味 AND 出身地（両方一致）
-- **片方のみ**: その条件での検索
-- リアルタイム結果表示
 
-### 📱 **対応プラットフォーム**
+# 1. フロントエンド起動（ターミナル1）
+cd frontend && flutter run -d web-server
 
-- ✅ Web (Chrome, Firefox, Safari, Edge)
-- ✅ Desktop (Windows, macOS, Linux)
-- 🔄 Mobile (今後対応予定)
+# 2. バックエンド起動（ターミナル2）
+cd backend && python main.py
 
-## 📚 詳細ドキュメント
-
-- **[frontend/README.md](./frontend/README.md)** - フロントエンド詳細ガイド
-- **[frontend/CLAUDE.md](./frontend/CLAUDE.md)** - 開発者向け技術仕様
-- **Makefile** - 便利なコマンド一覧
-
-## 🆘 トラブルシューティング
-
-### よくある問題
-
-1. **Flutter 環境エラー**: `flutter doctor` で環境確認
-2. **依存関係エラー**: `make clean && make install`
-3. **ビルドエラー**: `flutter clean && flutter pub get`
-
-<div align="center">
-  <p>🚀 <strong>AIハッカソン2025</strong> で革新的なアプリを作りましょう！</p>
-</div>
