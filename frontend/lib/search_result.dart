@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'constants/app_colors.dart';
 import 'widgets/common_widgets.dart';
+import 'widgets/highlight_text.dart';
 import 'services/firebase_search_service.dart';
 
 /// 統一デザインによる新しい検索結果画面
@@ -410,60 +411,24 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                   ],
                 ),
               ),
-              
-              // マッチングインジケーター
-              Column(
-                children: [
-                  if (hasMatchedHobby)
-                    _buildMatchBadge('趣味', AppColors.primaryIndigo),
-                  if (hasMatchedHobby && hasMatchedBirthplace)
-                    const SizedBox(height: 4),
-                  if (hasMatchedBirthplace)
-                    _buildMatchBadge('出身地', AppColors.accentCyan),
-                ],
-              ),
             ],
           ),
           
           const SizedBox(height: AppSpacing.md),
           
           // 詳細情報
-          _buildInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明'),
+          _buildHighlightInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明', widget.hobbies),
           const SizedBox(height: AppSpacing.sm),
-          _buildInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明'),
+          _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
         ],
       ),
     );
   }
 
-  /// マッチバッジを構築
-  Widget _buildMatchBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
 
-  /// 情報行を構築
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+
+  /// ハイライト付き情報行を構築
+  Widget _buildHighlightInfoRow(IconData icon, String label, String value, String query) {
     return Row(
       children: [
         Icon(
@@ -481,12 +446,14 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           ),
         ),
         Expanded(
-          child: Text(
-            value,
+          child: HighlightText(
+            text: value,
+            query: query,
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textDark,
             ),
+            isBold: true,
           ),
         ),
       ],

@@ -131,3 +131,20 @@ class AppSpacing {
   static const double xxl = 48.0;
   static const double xxxl = 64.0;
 }
+
+/// 検索結果ハイライト用カラーパレット
+class SearchHighlightColors {
+  SearchHighlightColors._();
+
+  // メインハイライト色（赤系）
+  static const Color matchText = Color(0xFFE53E3E);           // 濃い赤
+  static const Color matchTextBold = Color(0xFFC53030);       // より濃い赤（太字用）
+  
+  // 背景ハイライト（オプション）
+  static const Color matchBackground = Color(0xFFFED7D7);     // 薄い赤背景
+  static const Color matchBorder = Color(0xFFFEB2B2);        // 薄い赤ボーダー
+  
+  // 通常テキスト
+  static const Color normalText = Color(0xFF1E293B);         // ダークグレー
+  static const Color secondaryText = Color(0xFF64748B);      // グレー
+}
