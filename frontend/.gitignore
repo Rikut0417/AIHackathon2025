@@ -36,3 +36,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables
+.env
+*.env
+
+# Firebase service account keys
+*serviceAccountKey.json
