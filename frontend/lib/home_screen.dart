@@ -450,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     Text(
-                      '趣味や出身地から人を探してみましょう\n両方入力すると、両方が一致する人を探します',
+                      '趣味や出身地から人を探してみましょう\n・趣味のみ: 趣味が一致する人を検索\n・出身地のみ: 出身地が一致する人を検索\n・両方入力: 両条件を満たす人を検索',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textMedium,
@@ -502,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen>
 
           // 入力フィールド
           const Text(
-            '趣味',
+            '趣味（任意）',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -512,14 +512,14 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             controller: _hobbiesController,
-            hintText: '趣味を入力してください',
+            hintText: '例: 読書、映画、スポーツ（空欄でも検索可能）',
             prefixIcon: Icons.interests,
           ),
 
           const SizedBox(height: AppSpacing.lg),
 
           const Text(
-            '出身地',
+            '出身地（任意）',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -529,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             controller: _birthplaceController,
-            hintText: '出身地を入力してください',
+            hintText: '例: 東京、大阪、福岡（空欄でも検索可能）',
             prefixIcon: Icons.location_on,
           ),
 

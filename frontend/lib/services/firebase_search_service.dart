@@ -10,9 +10,17 @@ class FirebaseSearchService {
     String birthplace,
   ) async {
     try {
+      // 少なくとも一つは入力されている必要がある
+      final trimmedHobby = hobby.trim();
+      final trimmedBirthplace = birthplace.trim();
+      
+      if (trimmedHobby.isEmpty && trimmedBirthplace.isEmpty) {
+        throw Exception('趣味または出身地のいずれかを入力してください');
+      }
+      
       final result = await searchUsers(
-        hobby: hobby,
-        birthplace: birthplace,
+        hobby: trimmedHobby,
+        birthplace: trimmedBirthplace,
       );
       
       if (result['success'] == true) {
@@ -33,6 +41,7 @@ class FirebaseSearchService {
     try {
       final url = Uri.parse('$baseUrl/search');
       
+      // 空の文字列もそのまま送信（バックエンドで処理）
       final response = await http.post(
         url,
         headers: {
