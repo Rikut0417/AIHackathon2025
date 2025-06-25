@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'services/auth_service.dart';
+import 'home_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -9,10 +12,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isSignUp = false;
 
-  void _login() async {
+  void _authenticate() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -27,27 +32,75 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // ログイン処理のシミュレーション
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      if (_isSignUp) {
+        final user = await _authService.signUpWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+        if (user != null) {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('アカウント作成に失敗しました'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } else {
+        final user = await _authService.signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+        if (user != null) {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('ログインに失敗しました'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラー: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('ログインに成功しました'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.pop(context);
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ログイン'),
+        title: Text(_isSignUp ? 'アカウント作成' : 'ログイン'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -117,22 +170,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(width: 20),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'ログイン',
-                                style: TextStyle(
+                                _isSignUp ? 'アカウント作成' : 'ログイン',
+                                style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF111827),
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                'アカウントにアクセスしてください',
-                                style: TextStyle(
+                                _isSignUp ? '新しいアカウントを作成してください' : 'アカウントにアクセスしてください',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
                                   height: 1.4,
@@ -269,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
+                        onPressed: _isLoading ? null : _authenticate,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isLoading 
                               ? Colors.grey.shade300 
@@ -291,14 +344,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.login, size: 20),
-                                  SizedBox(width: 8),
+                                  Icon(_isSignUp ? Icons.person_add : Icons.login, size: 20),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'ログイン',
-                                    style: TextStyle(
+                                    _isSignUp ? 'アカウント作成' : 'ログイン',
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -344,11 +397,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 56,
                       child: OutlinedButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('アカウント登録機能は実装されていません'),
-                            ),
-                          );
+                          setState(() {
+                            _isSignUp = !_isSignUp;
+                          });
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF6366F1),
@@ -360,14 +411,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(16.0),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.person_add_outlined, size: 20),
-                            SizedBox(width: 8),
+                            Icon(_isSignUp ? Icons.login_outlined : Icons.person_add_outlined, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              '新規アカウント作成',
-                              style: TextStyle(
+                              _isSignUp ? 'ログインに切り替え' : '新規アカウント作成',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
