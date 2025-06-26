@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProfileAI アーキテクチャ図</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+            margin-top: 40px;
+        }
+        .diagram-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .tech-card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        .tech-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .tech-card ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tech-card li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ProfileAI システムアーキテクチャ</h1>
+        
+        <h2>📊 システム全体構成</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph TD
+                    subgraph "🎨 フロントエンド"
+                        A[Flutter App<br/>📱 Dart]
+                        A --> |🔐 ユーザー認証| B[Firebase Auth]
+                        A --> |🔍 プロフィール検索| C[Flask API Server]
+                        A --> |⚡ リアルタイム更新| D[Firestore DB]
+                    end
+
+                    subgraph "⚙️ バックエンド"
+                        C[Flask API Server<br/>🐍 Python] --> |📊 検索クエリ| D[Firestore DB]
+                        C --> |🌐 CORS対応| A
+                        C --> |💚 ヘルスチェック| E[Monitoring]
+                    end
+
+                    subgraph "🗄️ データベース"
+                        D[Firestore DB] --> |👤 ユーザープロフィール| F[profiles collection]
+                        F --> |🏷️ 検索インデックス| G[hobby_keywords]
+                        F --> |📍 フィルタリング| H[birthplace]
+                    end
+
+                    subgraph "🔒 認証・セキュリティ"
+                        B[Firebase Auth] --> |🎫 認証情報| I[Google Cloud IAM]
+                        I --> |🔑 サービスアカウント| C
+                    end
+
+                    subgraph "☁️ デプロイメント"
+                        J[Google Cloud Platform]
+                        J --> |🚀 ホスティング| C
+                        J --> |💾 ストレージ| D
+                        J --> |🔐 認証| B
+                    end
+
+                    subgraph "💻 開発環境"
+                        K[Local Development]
+                        K --> |🌐 Flutter Web| A
+                        K --> |🔧 Flask Dev Server| C
+                        K --> |⚙️ 環境変数| L[.env]
+                    end
+
+                    style A fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+                    style C fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
+                    style D fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
+                    style B fill:#F44336,stroke:#333,stroke-width:2px,color:#fff
+                    style J fill:#9C27B0,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+        </div>
+
+        <h2>🔄 データフロー</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                sequenceDiagram
+                    participant U as 👤 User
+                    participant F as 📱 Flutter App
+                    participant A as 🔐 Firebase Auth
+                    participant B as 🐍 Flask Backend
+                    participant D as 🗄️ Firestore DB
+
+                    U->>F: アプリ起動
+                    F->>A: 認証確認
+                    A-->>F: 認証状態返却
+                    
+                    U->>F: 検索実行 (趣味・出身地)
+                    F->>B: POST /search
+                    B->>D: クエリ実行 (hobby_keywords, birthplace)
+                    D-->>B: 検索結果
+                    B-->>F: JSON レスポンス
+                    F-->>U: 結果表示
+            </div>
+        </div>
+
+        <h2>🛠️ 技術仕様詳細</h2>
+        <div class="tech-specs">
+            <div class="tech-card">
+                <h3>📱 フロントエンド</h3>
+                <ul>
+                    <li><strong>技術:</strong> Flutter (Dart)</li>
+                    <li><strong>プラットフォーム:</strong> Web, iOS, Android</li>
+                    <li><strong>認証:</strong> Firebase Auth</li>
+                    <li><strong>主要画面:</strong> スプラッシュ、オンボーディング、ホーム、検索結果</li>
+                    <li><strong>サービス:</strong> AuthService, FirebaseSearchService</li>
+                </ul>
+            </div>
+
+            <div class="tech-card">
+                <h3>⚙️ バックエンド</h3>
+                <ul>
+                    <li><strong>技術:</strong> Flask (Python)</li>
+                    <li><strong>API:</strong> RESTful API</li>
+                    <li><strong>CORS:</strong> 有効化済み</li>
+                    <li><strong>ポート:</strong> 5000</li>
+                    <li><strong>エンドポイント:</strong> /search, /health</li>
+                </ul>
+            </div>
+
+            <div class="tech-card">
+                <h3>🗄️ データベース</h3>
+                <ul>
+                    <li><strong>技術:</strong> Firestore</li>
+                    <li><strong>コレクション:</strong> profiles</li>
+                    <li><strong>インデックス:</strong> hobby_keywords (配列)</li>
+                    <li><strong>フィールド:</strong> name, hobby, birthplace, department</li>
+                </ul>
+            </div>
+
+            <div class="tech-card">
+                <h3>🔍 検索機能</h3>
+                <ul>
+                    <li><strong>趣味検索:</strong> array_contains クエリ</li>
+                    <li><strong>出身地検索:</strong> 完全一致クエリ</li>
+                    <li><strong>複合検索:</strong> AND条件対応</li>
+                    <li><strong>結果形式:</strong> JSON (success, users, count)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>🚀 開発・デプロイフロー</h2>
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph LR
+                    A[💻 Local Development] --> B[🧪 Testing]
+                    B --> C[🔨 Build]
+                    C --> D[☁️ GCP Deploy]
+                    D --> E[🌐 Production]
+                    
+                    F[📝 Code Changes] --> A
+                    G[🔧 Configuration] --> A
+                    
+                    style A fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+                    style E fill:#FF5722,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            },
+            sequence: {
+                useMaxWidth: true,
+                showSequenceNumbers: true
+            }
+        });
+    </script>
+</body>
+</html>
