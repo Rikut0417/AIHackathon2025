@@ -46,8 +46,8 @@ def search_users():
         query = db.collection(collection_name)
 
         if search_hobby:
-            print(f"条件追加: 趣味に「{search_hobby}」を含む")
-            query = query.where(filter=FieldFilter('hobby', 'array_contains', search_hobby))
+            print(f"条件追加: 趣味キーワードに「{search_hobby}」を含む") # print文も分かりやすく変更
+            query = query.where(filter=FieldFilter('hobby_keywords', 'array_contains', search_hobby))
 
         if search_birthplace:
             print(f"条件追加: 出身地が「{search_birthplace}」と一致")
