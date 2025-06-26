@@ -344,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(width: AppSpacing.md),
               const Text(
-                'ProfileAI',
+                'Me-Too!（ミートゥー）',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

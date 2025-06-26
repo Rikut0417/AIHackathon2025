@@ -39,7 +39,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     OnboardingData(
       icon: Icons.rocket_launch,
       title: 'さあ、始めましょう！',
-      description: 'AIハッカソン2025の世界へようこそ',
+      description: 'Me-Too!（ミートゥー）の世界へようこそ',
       color: const Color(0xFF10B981),
     ),
   ];

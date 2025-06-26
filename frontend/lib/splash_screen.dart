@@ -134,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen>
                   return FadeTransition(
                     opacity: _logoAnimation,
                     child: const Text(
-                      'ProfileAI',
+                      'Me-Too!（ミートゥー）',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -155,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
                   return FadeTransition(
                     opacity: _logoAnimation,
                     child: const Text(
-                      'AI Powered Profile Search',
+                      'みんなでつながるプロフィール検索',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white70,
