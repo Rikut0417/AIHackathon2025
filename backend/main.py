@@ -22,9 +22,11 @@ try:
 
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
+
     print("Firebaseへの接続準備ができました。")
+
 except Exception as e:
-    print(f"初期化中にエラーが発生しました: {e}")
+    print(f"Firebaseの初期化中にエラーが発生しました: {e}")
     exit()
 
 db = firestore.client()
@@ -46,18 +48,19 @@ def search_users():
         query = db.collection(collection_name)
 
         if search_hobby:
-            print(f"条件追加: 趣味キーワードに「{search_hobby}」を含む") # print文も分かりやすく変更
+            print(f"条件追加: 趣味キーワードに「{search_hobby}」を含む")
             query = query.where(filter=FieldFilter('hobby_keywords', 'array_contains', search_hobby))
 
         if search_birthplace:
-            print(f"条件追加: 出身地が「{search_birthplace}」と一致")
-            query = query.where(filter=FieldFilter('birthplace', '==', search_birthplace))
+            print(f"条件追加: 出身地キーワードに「{search_birthplace}」を含む")
+            query = query.where(filter=FieldFilter('birthplace_keywords', 'array_contains', search_birthplace))
 
         docs = query.stream()
 
         found_users = []
         for doc in docs:
             profile_data = doc.to_dict()
+
             hobby_list = profile_data.get('hobby', [])
             hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
 
