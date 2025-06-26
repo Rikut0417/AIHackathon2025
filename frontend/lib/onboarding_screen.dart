@@ -99,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             // ヘッダー（スキップボタン）
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -109,8 +109,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     controller: _pageController,
                     count: _pages.length,
                     effect: WormEffect(
-                      dotHeight: 8,
-                      dotWidth: 8,
+                      dotHeight: 12,
+                      dotWidth: 12,
+                      spacing: 16,
                       activeDotColor: _pages[_currentIndex].color,
                       dotColor: Colors.grey.shade300,
                     ),
