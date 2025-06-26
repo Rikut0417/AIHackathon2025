@@ -25,6 +25,11 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   List<Map<String, String>> _searchResults = [];
   bool _isLoading = true;
   String? _errorMessage;
+  
+  // ページネーション関連
+  int _currentPage = 0;
+  static const int _itemsPerPage = 10;
+  late ScrollController _scrollController;
 
   // アニメーションコントローラー
   late AnimationController _fadeController;
@@ -35,6 +40,9 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   @override
   void initState() {
     super.initState();
+
+    // ScrollController初期化
+    _scrollController = ScrollController();
 
     // アニメーション初期化
     _fadeController = AnimationController(
@@ -141,6 +149,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
@@ -298,29 +307,48 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       );
     }
 
+    final totalPages = (_searchResults.length / _itemsPerPage).ceil();
+    final startIndex = _currentPage * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, _searchResults.length);
+    final currentPageResults = _searchResults.sublist(startIndex, endIndex);
+
     return Column(
       children: [
-        // 結果数表示
+        // 結果数とページ情報表示
         Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(
-                  Icons.people,
-                  color: AppColors.primaryIndigo,
-                  size: 20,
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.people,
+                      color: AppColors.primaryIndigo,
+                      size: 20,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '${_searchResults.length}件見つかりました',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  '${_searchResults.length}件見つかりました',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                if (totalPages > 1)
+                  Text(
+                    '${_currentPage + 1} / $totalPages ページ',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textMedium,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -329,9 +357,10 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         // 結果リスト
         Expanded(
           child: ListView.builder(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            itemCount: _searchResults.length,
+            itemCount: currentPageResults.length,
             itemBuilder: (context, index) {
               return SlideTransition(
                 position: _slideAnimation,
@@ -339,13 +368,17 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                   opacity: _fadeAnimation,
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 200 + (index * 50)),
-                    child: _buildResultCard(_searchResults[index], index),
+                    child: _buildResultCard(currentPageResults[index], index),
                   ),
                 ),
               );
             },
           ),
         ),
+        
+        // ページネーション
+        if (totalPages > 1)
+          _buildPagination(totalPages),
       ],
     );
   }
@@ -458,5 +491,130 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         ),
       ],
     );
+  }
+
+  /// ページネーションUIを構築
+  Widget _buildPagination(int totalPages) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: const BoxDecoration(
+        color: AppColors.cardBackground,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.borderLight,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 前へボタン
+          _buildPaginationButton(
+            icon: Icons.arrow_back_ios,
+            text: '前へ',
+            onPressed: _currentPage > 0 ? () => _changePage(_currentPage - 1) : null,
+          ),
+          
+          // 中央スペース
+          const Expanded(child: SizedBox()),
+          
+          // 次へボタン
+          _buildPaginationButton(
+            icon: Icons.arrow_forward_ios,
+            text: '次へ',
+            onPressed: _currentPage < totalPages - 1 ? () => _changePage(_currentPage + 1) : null,
+            isReversed: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ページネーションボタンを構築
+  Widget _buildPaginationButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback? onPressed,
+    bool isReversed = false,
+  }) {
+    final isEnabled = onPressed != null;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isEnabled ? AppColors.primaryIndigo : AppColors.borderLight,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: isReversed
+                ? [
+                    Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
+                    ),
+                  ]
+                : [
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
+                      ),
+                    ),
+                  ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  /// ページを変更
+  void _changePage(int newPage) {
+    setState(() {
+      _currentPage = newPage;
+    });
+    
+    // スクロールを上部に移動
+    _scrollController.animateTo(
+      0.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+    
+    // アニメーションをリセットして再開
+    _fadeController.reset();
+    _slideController.reset();
+    _fadeController.forward();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _slideController.forward();
+    });
   }
 }
