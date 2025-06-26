@@ -50,6 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
+  // Enterキー押下時の処理
+  void _handleEnterKeyPress() {
+    if (_isFormValid && !_isLoading) {
+      _authenticate();
+    }
+  }
+
   void _authenticate() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -287,6 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       : null,
                           ),
                           keyboardType: TextInputType.emailAddress,
+                          onSubmitted: (_) => _handleEnterKeyPress(),
                         ),
                       ],
                     ),
@@ -347,6 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ? 'パスワードは6文字以上で入力してください' 
                                       : null,
                           ),
+                          onSubmitted: (_) => _handleEnterKeyPress(),
                         ),
                       ],
                     ),
