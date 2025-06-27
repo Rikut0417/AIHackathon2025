@@ -20,7 +20,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       icon: Icons.smart_toy,
-      title: 'AIが日常をサポート',
+      title: 'AIが交流をサポート',
       description: '最新のAI技術で、あなたの課題を解決します',
       color: const Color(0xFF6366F1),
     ),
