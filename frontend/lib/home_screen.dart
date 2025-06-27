@@ -137,7 +137,10 @@ class _HomeScreenState extends State<HomeScreen>
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('ログアウト'),
-          content: const Text('本当にログアウトしますか？'),
+          content: SizedBox(
+            width: 400, // 幅を広げる（必要に応じて調整）
+            child: const Text('本当にログアウトしますか？'),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
