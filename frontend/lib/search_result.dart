@@ -26,6 +26,11 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   List<Map<String, String>> _searchResults = [];
   bool _isLoading = true;
   String? _errorMessage;
+  
+  // ページネーション関連
+  int _currentPage = 0;
+  static const int _itemsPerPage = 10;
+  late ScrollController _scrollController;
 
   Set<String> _selectedUserNames = <String>{};
   bool _isAllCurrentPageSelected = false;
@@ -39,6 +44,9 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   @override
   void initState() {
     super.initState();
+
+    // ScrollController初期化
+    _scrollController = ScrollController();
 
     // アニメーション初期化
     _fadeController = AnimationController(
@@ -182,6 +190,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
@@ -378,16 +387,25 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       );
     }
 
+    final totalPages = (_searchResults.length / _itemsPerPage).ceil();
+    final startIndex = _currentPage * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, _searchResults.length);
+    final currentPageResults = _searchResults.sublist(startIndex, endIndex);
+
     return Column(
       children: [
+
         // 結果数とコントロール
+
         Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: FadeTransition(
             opacity: _fadeAnimation,
+
             child: Column(
               children: [
                 // 結果数表示
+
                 Row(
                   children: [
                     const Icon(
@@ -406,6 +424,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     ),
                   ],
                 ),
+
 
                 const SizedBox(height: AppSpacing.md),
 
@@ -445,6 +464,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     ),
                   ],
                 ),
+
               ],
             ),
           ),
@@ -452,6 +472,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
         // 検索結果リスト
         Expanded(
+
           child: SlideTransition(
             position: _slideAnimation,
             child: ListView.builder(
@@ -461,8 +482,13 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                 return _buildResultCard(_searchResults[index], index);
               },
             ),
+
           ),
         ),
+        
+        // ページネーション
+        if (totalPages > 1)
+          _buildPagination(totalPages),
       ],
     );
   }
@@ -585,6 +611,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
     );
   }
 
+
   /// 選択したメンバーのメンションをコピー
   void _copySelectedMentions() async {
     if (_selectedUserNames.isEmpty) {
@@ -650,3 +677,4 @@ class _SearchResultScreenState extends State<SearchResultScreen>
     }
   }
 }
+
