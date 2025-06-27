@@ -71,19 +71,20 @@ def search_users():
             for doc in hobby_docs:
                 if doc.id in processed_user_ids:
                     continue
-                
+
                 profile_data = doc.to_dict()
                 user_birthplace = profile_data.get('birthplace', '不明')
-                
+
                 # 出身地の条件もチェック（指定されている場合）
                 birthplace_match = not search_birthplace or search_birthplace in user_birthplace
-                
+
                 if birthplace_match:
                     hobby_list = profile_data.get('hobby', [])
                     hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
-                    
+
                     found_users.append({
                         "name": profile_data.get('name', '名前なし'),
+                        "name_roman": profile_data.get('name_roman', 'Unknown Name'),
                         "hobby": hobby_string,
                         "birthplace": user_birthplace,
                         "department": profile_data.get('department', '部署不明'),
@@ -98,14 +99,14 @@ def search_users():
             print(f"出身地「{search_birthplace}」で検索中...")
             # 全てのドキュメントを取得して出身地をチェック
             all_docs = db.collection(collection_name).stream()
-            
+
             for doc in all_docs:
                 if doc.id in processed_user_ids:
                     continue
-                
+
                 profile_data = doc.to_dict()
                 user_birthplace = profile_data.get('birthplace', '')
-                
+
                 # 出身地にマッチするかチェック
                 if search_birthplace in user_birthplace:
                     # 趣味の条件もチェック（指定されている場合）
@@ -113,13 +114,14 @@ def search_users():
                     if search_hobby:
                         hobby_list = profile_data.get('hobby', [])
                         hobby_match = search_hobby in hobby_list
-                    
+
                     if hobby_match:
                         hobby_list = profile_data.get('hobby', [])
                         hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
-                        
+
                         found_users.append({
                             "name": profile_data.get('name', '名前なし'),
+                            "name_roman": profile_data.get('name_roman', 'Unknown Name'),
                             "hobby": hobby_string,
                             "birthplace": user_birthplace,
                             "department": profile_data.get('department', '部署不明'),

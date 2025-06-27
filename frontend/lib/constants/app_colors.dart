@@ -10,6 +10,7 @@ class AppColors {
   static const Color secondaryPurple = Color(0xFF8B5CF6);
   static const Color accentCyan = Color(0xFF06B6D4);
   static const Color successGreen = Color(0xFF10B981);
+  static const Color primaryTeal = Color(0xFF009688);
 
   // === 背景色 ===
   static const Color backgroundLight = Color(0xFFF8FAFC);
@@ -139,11 +140,11 @@ class SearchHighlightColors {
   // メインハイライト色（赤系）
   static const Color matchText = Color(0xFFE53E3E);           // 濃い赤
   static const Color matchTextBold = Color(0xFFC53030);       // より濃い赤（太字用）
-  
+
   // 背景ハイライト（オプション）
   static const Color matchBackground = Color(0xFFFED7D7);     // 薄い赤背景
   static const Color matchBorder = Color(0xFFFEB2B2);        // 薄い赤ボーダー
-  
+
   // 通常テキスト
   static const Color normalText = Color(0xFF1E293B);         // ダークグレー
   static const Color secondaryText = Color(0xFF64748B);      // グレー
