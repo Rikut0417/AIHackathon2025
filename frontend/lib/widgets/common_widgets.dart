@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../utils/responsive_helper.dart';
 
 /// 統一されたカードウィジェット
 class AppCard extends StatelessWidget {
@@ -133,7 +134,7 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      height: height ?? 56,
+      height: height ?? ResponsiveHelper.getButtonHeight(context),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
@@ -151,16 +152,16 @@ class AppButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.largeBorder,
           ),
-          padding: padding ?? const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.md,
+          padding: padding ?? EdgeInsets.symmetric(
+            horizontal: ResponsiveHelper.getSpacing(context, SpacingType.xl),
+            vertical: ResponsiveHelper.getSpacing(context, SpacingType.md),
           ),
         ),
         child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
+            ? SizedBox(
+                height: ResponsiveHelper.getIconSize(context, IconSizeType.small),
+                width: ResponsiveHelper.getIconSize(context, IconSizeType.small),
+                child: const CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.textWhite),
                 ),
@@ -169,13 +170,13 @@ class AppButton extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, size: 20),
-                    const SizedBox(width: AppSpacing.sm),
+                    Icon(icon, size: ResponsiveHelper.getIconSize(context, IconSizeType.small)),
+                    SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                   ],
                   Text(
                     text,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.body),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -268,9 +269,9 @@ class AppTextField extends StatelessWidget {
           borderRadius: AppRadius.mediumBorder,
           borderSide: const BorderSide(color: AppColors.errorRed, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: ResponsiveHelper.getSpacing(context, SpacingType.md),
+          vertical: ResponsiveHelper.getSpacing(context, SpacingType.md),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'widgets/common_widgets.dart';
 import 'login.dart';
 import 'search_result.dart';
 import 'services/auth_service.dart';
+import 'utils/responsive_helper.dart';
 
 /// 統一デザインによる新しいホーム画面
 /// スプラッシュ・オンボーディング画面との一貫性を保つ
@@ -137,9 +138,9 @@ class _HomeScreenState extends State<HomeScreen>
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('ログアウト'),
-          content: SizedBox(
+          content: const SizedBox(
             width: 400, // 幅を広げる（必要に応じて調整）
-            child: const Text('本当にログアウトしますか？'),
+            child: Text('本当にログアウトしますか？'),
           ),
           actions: [
             TextButton(
@@ -217,20 +218,6 @@ class _HomeScreenState extends State<HomeScreen>
           _isLoading = false;
         });
       }
-    } catch (e) {
-      // エラーハンドリング
-      if (mounted) {
-        Navigator.of(context).pop(); // ローディングダイアログを閉じる
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('ログアウトに失敗しました: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -266,44 +253,47 @@ class _HomeScreenState extends State<HomeScreen>
               
               // メインコンテンツ
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: AppSpacing.lg),
-                        
-                        // ウェルカムセクション
-                        FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: _buildWelcomeSection(),
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.xl),
-                        
-                        // 検索フォーム
-                        SlideTransition(
-                          position: _slideAnimation,
-                          child: FadeTransition(
+                child: ResponsiveWrapper(
+                  maxWidth: ResponsiveHelper.getMaxContentWidth(context),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: ResponsiveHelper.getScreenPadding(context),
+                      child: Column(
+                        children: [
+                          SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.lg)),
+                          
+                          // ウェルカムセクション
+                          FadeTransition(
                             opacity: _fadeAnimation,
-                            child: _buildSearchForm(),
+                            child: _buildWelcomeSection(),
                           ),
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.xl),
-                        
-                        // 機能紹介カード
-                        SlideTransition(
-                          position: _slideAnimation,
-                          child: FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: _buildFeatureCards(),
+                          
+                          SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.xl)),
+                          
+                          // 検索フォーム
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildSearchForm(),
+                            ),
                           ),
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.xxxl),
-                      ],
+                          
+                          SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.xl)),
+                          
+                          // 機能紹介カード
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildFeatureCards(),
+                            ),
+                          ),
+                          
+                          SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.xxl)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -318,56 +308,66 @@ class _HomeScreenState extends State<HomeScreen>
   /// ヘッダー部分を構築
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveHelper.getSpacing(context, SpacingType.lg),
+        vertical: ResponsiveHelper.getSpacing(context, SpacingType.md),
       ),
       decoration: const BoxDecoration(
         color: AppColors.cardBackground,
         boxShadow: AppShadows.soft,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // ロゴ
-          Row(
+      child: ResponsiveBuilder(
+        builder: (context, deviceType) {
+          final isMobile = deviceType == DeviceType.mobile;
+          
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.smart_toy,
-                  color: AppColors.textWhite,
-                  size: 24,
+              // ロゴ
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: isMobile ? 32 : 40,
+                      height: isMobile ? 32 : 40,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.smart_toy,
+                        color: AppColors.textWhite,
+                        size: isMobile ? 20 : 24,
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.md)),
+                    if (!isMobile) // モバイルでは文字を非表示
+                      Text(
+                        'ProfileAI',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.subtitle),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              const Text(
-                'Me-Too!（ミートゥー）',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+              
+              // ログアウトボタン
+              AppButton(
+                text: isMobile ? 'ログアウト' : 'ログアウト',
+                onPressed: _logout,
+                height: ResponsiveHelper.getButtonHeight(context) * 0.8,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveHelper.getSpacing(context, SpacingType.md),
+                  vertical: ResponsiveHelper.getSpacing(context, SpacingType.sm),
                 ),
               ),
             ],
-          ),
-          
-          // ログアウトボタン
-          AppButton(
-            text: 'ログアウト',
-            onPressed: _logout,
-            height: 40,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.sm,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -387,23 +387,23 @@ class _HomeScreenState extends State<HomeScreen>
                 size: 32,
               ),
               const SizedBox(width: AppSpacing.md),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'ようこそ！',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.title),
                         fontWeight: FontWeight.bold,
                         color: AppColors.textWhite,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       'AIを活用したプロフィール検索で、新しい出会いを見つけましょう',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.body),
                         color: AppColors.textWhite,
                         height: 1.4,
                       ),
@@ -430,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryIndigo.withOpacity(0.1),
+                  color: AppColors.primaryIndigo.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -473,10 +473,10 @@ class _HomeScreenState extends State<HomeScreen>
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.errorRed.withOpacity(0.1),
+                color: AppColors.errorRed.withValues(alpha: 0.1),
                 borderRadius: AppRadius.mediumBorder,
                 border: Border.all(
-                  color: AppColors.errorRed.withOpacity(0.3),
+                  color: AppColors.errorRed.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -560,106 +560,124 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '主な機能',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.subtitle),
             fontWeight: FontWeight.bold,
             color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.lg)),
         
-        Row(
-          children: [
-            // AI検索機能
-            Expanded(
-              child: AppCard(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryIndigo.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.smart_toy,
-                        color: AppColors.primaryIndigo,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const Text(
-                      'AI検索',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    const Text(
-                      '高度なAIアルゴリズムによる精密な検索',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        ResponsiveBuilder(
+          builder: (context, deviceType) {
+            final isMobile = deviceType == DeviceType.mobile;
             
-            const SizedBox(width: AppSpacing.md),
-            
-            // 高速検索機能
-            Expanded(
-              child: AppCard(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentCyan.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.flash_on,
-                        color: AppColors.accentCyan,
-                        size: 32,
-                      ),
+            if (isMobile) {
+              // モバイルでは縦並び
+              return Column(
+                children: [
+                  _buildFeatureCard(
+                    context,
+                    icon: Icons.smart_toy,
+                    color: AppColors.primaryIndigo,
+                    title: 'AI検索',
+                    description: '高度なAIアルゴリズムによる精密な検索',
+                  ),
+                  SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.md)),
+                  _buildFeatureCard(
+                    context,
+                    icon: Icons.flash_on,
+                    color: AppColors.accentCyan,
+                    title: '高速検索',
+                    description: 'リアルタイムで瞬時に結果を表示',
+                  ),
+                ],
+              );
+            } else {
+              // タブレット・デスクトップでは横並び
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildFeatureCard(
+                      context,
+                      icon: Icons.smart_toy,
+                      color: AppColors.primaryIndigo,
+                      title: 'AI検索',
+                      description: '高度なAIアルゴリズムによる精密な検索',
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    const Text(
-                      '高速検索',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
+                  ),
+                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.md)),
+                  Expanded(
+                    child: _buildFeatureCard(
+                      context,
+                      icon: Icons.flash_on,
+                      color: AppColors.accentCyan,
+                      title: '高速検索',
+                      description: 'リアルタイムで瞬時に結果を表示',
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    const Text(
-                      'リアルタイムで瞬時に結果を表示',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ],
+    );
+  }
+
+  /// 機能カードを構築（検索カードと同じデザイン仕様）
+  Widget _buildFeatureCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String description,
+  }) {
+    return AppCard(
+      child: Row(
+        children: [
+          // アイコンコンテナ（検索カードのヘッダーと同じスタイル）
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          // テキスト部分（検索カードと同じレイアウト）
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textMedium,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

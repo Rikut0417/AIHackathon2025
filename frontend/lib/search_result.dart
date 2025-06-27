@@ -3,6 +3,7 @@ import 'constants/app_colors.dart';
 import 'widgets/common_widgets.dart';
 import 'widgets/highlight_text.dart';
 import 'services/firebase_search_service.dart';
+import 'utils/responsive_helper.dart';
 
 /// 統一デザインによる新しい検索結果画面
 /// スプラッシュ・オンボーディング・ホーム画面との一貫性を保つ
@@ -26,9 +27,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   bool _isLoading = true;
   String? _errorMessage;
   
-  // ページネーション関連
-  int _currentPage = 0;
-  static const int _itemsPerPage = 10;
   late ScrollController _scrollController;
 
   // アニメーションコントローラー
@@ -171,20 +169,22 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // ヘッダー
-              _buildHeader(),
-              
-              // メインコンテンツ
-              Expanded(
-                child: _isLoading
-                    ? _buildLoadingState()
-                    : _errorMessage != null
-                        ? _buildErrorState()
-                        : _buildResultsList(),
-              ),
-            ],
+          child: ResponsiveWrapper(
+            child: Column(
+              children: [
+                // ヘッダー
+                _buildHeader(),
+                
+                // メインコンテンツ
+                Expanded(
+                  child: _isLoading
+                      ? _buildLoadingState()
+                      : _errorMessage != null
+                          ? _buildErrorState()
+                          : _buildResultsList(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -193,88 +193,98 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
   /// ヘッダー部分を構築
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.cardBackground,
-        boxShadow: AppShadows.soft,
-      ),
-      child: Column(
-        children: [
-          // ナビゲーション
-          Row(
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final headerPadding = ResponsiveHelper.getSpacing(context, SpacingType.lg);
+        final titleFontSize = ResponsiveHelper.getFontSize(context, FontSizeType.subtitle);
+        final iconSize = ResponsiveHelper.getIconSize(context, IconSizeType.medium);
+        final searchIconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
+        
+        return Container(
+          padding: EdgeInsets.all(headerPadding),
+          decoration: const BoxDecoration(
+            color: AppColors.cardBackground,
+            boxShadow: AppShadows.soft,
+          ),
+          child: Column(
             children: [
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Expanded(
-                child: Text(
-                  '検索結果',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
+              // ナビゲーション
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: AppColors.textDark,
+                      size: iconSize,
+                    ),
                   ),
+                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
+                  Expanded(
+                    child: Text(
+                      '検索結果',
+                      style: TextStyle(
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.md)),
+              
+              // 検索条件サマリー
+              AppCard(
+                margin: EdgeInsets.zero,
+                padding: EdgeInsets.all(ResponsiveHelper.getSpacing(context, SpacingType.md)),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(ResponsiveHelper.getSpacing(context, SpacingType.sm)),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.search,
+                        color: AppColors.primaryIndigo,
+                        size: searchIconSize,
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.md)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '検索条件',
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.caption),
+                              color: AppColors.textLight,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _getSearchSummary(),
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.body),
+                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          
-          const SizedBox(height: AppSpacing.md),
-          
-          // 検索条件サマリー
-          AppCard(
-            margin: EdgeInsets.zero,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryIndigo.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.search,
-                    color: AppColors.primaryIndigo,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '検索条件',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textLight,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _getSearchSummary(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -307,154 +317,191 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       );
     }
 
-    final totalPages = (_searchResults.length / _itemsPerPage).ceil();
-    final startIndex = _currentPage * _itemsPerPage;
-    final endIndex = (startIndex + _itemsPerPage).clamp(0, _searchResults.length);
-    final currentPageResults = _searchResults.sublist(startIndex, endIndex);
-
-    return Column(
-      children: [
-        // 結果数とページ情報表示
-        Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final gridColumns = ResponsiveHelper.getGridColumns(context);
+        final padding = ResponsiveHelper.getSpacing(context, SpacingType.lg);
+        final iconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
+        final bodyFontSize = ResponsiveHelper.getFontSize(context, FontSizeType.body);
+        
+        return Column(
+          children: [
+            // 結果数表示
+            Padding(
+              padding: EdgeInsets.all(padding),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.people,
                       color: AppColors.primaryIndigo,
-                      size: 20,
+                      size: iconSize,
                     ),
-                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                     Text(
                       '${_searchResults.length}件見つかりました',
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: bodyFontSize,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
                   ],
                 ),
-                if (totalPages > 1)
-                  Text(
-                    '${_currentPage + 1} / $totalPages ページ',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textMedium,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
+              ),
+            ),
+            
+            // 結果リスト - グリッドまたはリスト表示
+            Expanded(
+              child: gridColumns == 1
+                  ? _buildListView(padding)
+                  : _buildGridView(gridColumns, padding),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  /// リスト表示を構築（モバイル用）
+  Widget _buildListView(double padding) {
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        return SlideTransition(
+          position: _slideAnimation,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200 + (index * 50)),
+              child: _buildResultCard(_searchResults[index], index),
             ),
           ),
-        ),
-        
-        // 結果リスト
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            itemCount: currentPageResults.length,
-            itemBuilder: (context, index) {
-              return SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 200 + (index * 50)),
-                    child: _buildResultCard(currentPageResults[index], index),
-                  ),
-                ),
-              );
-            },
+        );
+      },
+    );
+  }
+  
+  /// グリッド表示を構築（タブレット・デスクトップ用）
+  Widget _buildGridView(int gridColumns, double padding) {
+    return GridView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.all(padding),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: gridColumns,
+        childAspectRatio: gridColumns == 2 ? 1.2 : 1.0,
+        crossAxisSpacing: ResponsiveHelper.getSpacing(context, SpacingType.md),
+        mainAxisSpacing: ResponsiveHelper.getSpacing(context, SpacingType.md),
+      ),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        return SlideTransition(
+          position: _slideAnimation,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200 + (index * 50)),
+              child: _buildResultCard(_searchResults[index], index),
+            ),
           ),
-        ),
-        
-        // ページネーション
-        if (totalPages > 1)
-          _buildPagination(totalPages),
-      ],
+        );
+      },
     );
   }
 
   /// 個別の結果カードを構築
   Widget _buildResultCard(Map<String, String> result, int index) {
-    final hasMatchedHobby = result['matched_hobby']?.isNotEmpty == true;
-    final hasMatchedBirthplace = result['matched_birthplace']?.isNotEmpty == true;
+    // マッチング条件の確認（現在は表示のみで使用していないが、将来的な機能拡張用）
 
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ヘッダー行
-          Row(
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final cardMargin = deviceType == DeviceType.mobile 
+            ? EdgeInsets.only(bottom: ResponsiveHelper.getSpacing(context, SpacingType.md))
+            : EdgeInsets.zero;
+        final avatarSize = ResponsiveHelper.getIconSize(context, IconSizeType.large);
+        final nameFontSize = ResponsiveHelper.getFontSize(context, FontSizeType.subtitle);
+        final departmentFontSize = ResponsiveHelper.getFontSize(context, FontSizeType.body);
+        final avatarFontSize = deviceType == DeviceType.mobile ? 20.0 : 24.0;
+        final spacing = ResponsiveHelper.getSpacing(context, SpacingType.md);
+        final smallSpacing = ResponsiveHelper.getSpacing(context, SpacingType.sm);
+        
+        return AppCard(
+          margin: cardMargin,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // アバター
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Center(
-                  child: Text(
-                    result['name']?.isNotEmpty == true 
-                        ? result['name']!.substring(0, 1)
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textWhite,
+              // ヘッダー行
+              Row(
+                children: [
+                  // アバター
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(avatarSize / 2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        result['name']?.isNotEmpty == true 
+                            ? result['name']!.substring(0, 1)
+                            : '?',
+                        style: TextStyle(
+                          fontSize: avatarFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textWhite,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  
+                  SizedBox(width: spacing),
+                  
+                  // 名前と部署
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          result['name'] ?? '名前なし',
+                          style: TextStyle(
+                            fontSize: nameFontSize,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          result['department'] ?? '部署不明',
+                          style: TextStyle(
+                            fontSize: departmentFontSize,
+                            color: AppColors.textMedium,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(height: spacing),
               
-              // 名前と部署
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      result['name'] ?? '名前なし',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      result['department'] ?? '部署不明',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // 詳細情報
+              _buildHighlightInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明', widget.hobbies),
+              SizedBox(height: smallSpacing),
+              _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
             ],
           ),
-          
-          const SizedBox(height: AppSpacing.md),
-          
-          // 詳細情報
-          _buildHighlightInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明', widget.hobbies),
-          const SizedBox(height: AppSpacing.sm),
-          _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -462,159 +509,44 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
   /// ハイライト付き情報行を構築
   Widget _buildHighlightInfoRow(IconData icon, String label, String value, String query) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: AppColors.textLight,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textMedium,
-          ),
-        ),
-        Expanded(
-          child: HighlightText(
-            text: value,
-            query: query,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textDark,
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final iconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
+        final fontSize = ResponsiveHelper.getFontSize(context, FontSizeType.body);
+        final spacing = ResponsiveHelper.getSpacing(context, SpacingType.sm);
+        
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: iconSize,
+              color: AppColors.textLight,
             ),
-            isBold: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// ページネーションUIを構築
-  Widget _buildPagination(int totalPages) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.cardBackground,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.borderLight,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // 前へボタン
-          _buildPaginationButton(
-            icon: Icons.arrow_back_ios,
-            text: '前へ',
-            onPressed: _currentPage > 0 ? () => _changePage(_currentPage - 1) : null,
-          ),
-          
-          // 中央スペース
-          const Expanded(child: SizedBox()),
-          
-          // 次へボタン
-          _buildPaginationButton(
-            icon: Icons.arrow_forward_ios,
-            text: '次へ',
-            onPressed: _currentPage < totalPages - 1 ? () => _changePage(_currentPage + 1) : null,
-            isReversed: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// ページネーションボタンを構築
-  Widget _buildPaginationButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback? onPressed,
-    bool isReversed = false,
-  }) {
-    final isEnabled = onPressed != null;
-    
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isEnabled ? AppColors.primaryIndigo : AppColors.borderLight,
-              width: 1,
+            SizedBox(width: spacing),
+            Text(
+              '$label: ',
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMedium,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: isReversed
-                ? [
-                    Text(
-                      text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
-                    ),
-                  ]
-                : [
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isEnabled ? AppColors.primaryIndigo : AppColors.textLight,
-                      ),
-                    ),
-                  ],
-          ),
-        ),
-      ),
+            Expanded(
+              child: HighlightText(
+                text: value,
+                query: query,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: AppColors.textDark,
+                ),
+                isBold: true,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-
-  /// ページを変更
-  void _changePage(int newPage) {
-    setState(() {
-      _currentPage = newPage;
-    });
-    
-    // スクロールを上部に移動
-    _scrollController.animateTo(
-      0.0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-    
-    // アニメーションをリセットして再開
-    _fadeController.reset();
-    _slideController.reset();
-    _fadeController.forward();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _slideController.forward();
-    });
-  }
 }
