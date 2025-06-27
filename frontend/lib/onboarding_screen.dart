@@ -19,25 +19,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // オンボーディングページのデータ
   final List<OnboardingData> _pages = [
     OnboardingData(
-      icon: Icons.smart_toy,
-      title: 'AIが交流をサポート',
-      description: '最新のAI技術で、あなたの課題を解決します',
+      icon: Icons.groups, 
+      title: 'AIで新しい出会いを',
+      description: '社内に埋もれた共通の仲間をAIが掘り起こします',
       color: const Color(0xFF6366F1),
     ),
     OnboardingData(
-      icon: Icons.phone_iphone,
-      title: '直感的な操作',
-      description: '写真を撮るだけ、話すだけで結果が得られます',
+      icon: Icons.search, 
+      title: 'シンプルなキーワード検索',
+      description: '趣味や出身地のキーワードで、社内の仲間を瞬時に見つけられます',
       color: const Color(0xFF8B5CF6),
     ),
     OnboardingData(
-      icon: Icons.track_changes,
-      title: '正確な分析結果',
-      description: '高度なAIアルゴリズムによる信頼性の高い結果',
+      icon: Icons.psychology_alt, 
+      title: '高度なAIで精密検索',
+      description: '高度なAIアルゴリズムが、あなたの求める仲間を正確に探し出します',
       color: const Color(0xFF06B6D4),
     ),
     OnboardingData(
-      icon: Icons.rocket_launch,
+      icon: Icons.rocket_launch, 
       title: 'さあ、始めましょう！',
       description: 'Me-Too!（ミートゥー）の世界へようこそ',
       color: const Color(0xFF10B981),
