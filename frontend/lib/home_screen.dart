@@ -515,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             controller: _hobbiesController,
-            hintText: '例: 読書、映画、旅行（空欄でも検索可能）',
+            hintText: '例: 読書、映画、旅行',
             prefixIcon: Icons.interests,
             onSubmitted: (_) => _search(),
           ),
@@ -533,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             controller: _birthplaceController,
-            hintText: '例: 東京都、大阪府、福岡県（空欄でも検索可能）',
+            hintText: '例: 東京都、大阪府、福岡県',
             prefixIcon: Icons.location_on,
             onSubmitted: (_) => _search(),
           ),
