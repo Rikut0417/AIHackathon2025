@@ -14,12 +14,14 @@ app = Flask(__name__)
 CORS(app)
 
 try:
+    # 環境変数からサービスアカウントキーのファイルパスを取得
     service_account_path = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
     if not service_account_path:
         raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY環境変数が設定されていません")
 
     cred = credentials.Certificate(service_account_path)
 
+    # アプリがまだ初期化されていなければ初期化
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
 
@@ -38,6 +40,7 @@ def search_users():
         if not data:
             return jsonify({'success': False, 'error': 'Request data is required'}), 400
 
+        # リクエストから検索キーワードを取得
         search_hobby = data.get('hobby', '').strip()
         search_birthplace = data.get('birthplace', '').strip()
 
@@ -47,91 +50,49 @@ def search_users():
         collection_name = 'profiles'
         query = db.collection(collection_name)
 
+        # --- 効率的なAND検索クエリの構築 ---
+        # 趣味が指定されていれば、hobby_keywordsに対する検索条件を追加
         if search_hobby:
             print(f"条件追加: 趣味キーワードに「{search_hobby}」を含む")
             query = query.where(filter=FieldFilter('hobby_keywords', 'array_contains', search_hobby))
 
+        # 出身地が指定されていれば、birthplace_keywordsに対する検索条件を追加
         if search_birthplace:
             print(f"条件追加: 出身地キーワードに「{search_birthplace}」を含む")
             query = query.where(filter=FieldFilter('birthplace_keywords', 'array_contains', search_birthplace))
 
+        # 組み立てたクエリをFirestoreで実行
         docs = query.stream()
 
         found_users = []
+        # --- ヒットしたユーザーの情報を整形 ---
         for doc in docs:
             profile_data = doc.to_dict()
 
-        # 1. 趣味での検索（趣味が指定されている場合）
-        if search_hobby:
-            print(f"趣味「{search_hobby}」で検索中...")
-            hobby_query = db.collection(collection_name).where(
-                filter=FieldFilter('hobby', 'array_contains', search_hobby)
-            )
-            hobby_docs = hobby_query.stream()
+            # 趣味リストをカンマ区切りの文字列に変換
+            hobby_list = profile_data.get('hobby', [])
+            hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
 
-            for doc in hobby_docs:
-                if doc.id in processed_user_ids:
-                    continue
+            # マッチ種別を判定
+            match_type = ""
+            if search_hobby and search_birthplace:
+                match_type = "hobby_and_birthplace"
+            elif search_hobby:
+                match_type = "hobby"
+            elif search_birthplace:
+                match_type = "birthplace"
 
-                profile_data = doc.to_dict()
-                user_birthplace = profile_data.get('birthplace', '不明')
-
-                # 出身地の条件もチェック（指定されている場合）
-                birthplace_match = not search_birthplace or search_birthplace in user_birthplace
-
-                if birthplace_match:
-                    hobby_list = profile_data.get('hobby', [])
-                    hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
-
-                    found_users.append({
-                        "name": profile_data.get('name', '名前なし'),
-                        "name_roman": profile_data.get('name_roman', 'Unknown Name'),
-                        "hobby": hobby_string,
-                        "birthplace": user_birthplace,
-                        "department": profile_data.get('department', '部署不明'),
-                        "matched_hobby": search_hobby,
-                        "matched_birthplace": search_birthplace if search_birthplace and search_birthplace in user_birthplace else None,
-                        "match_type": "hobby" + ("_and_birthplace" if search_birthplace and search_birthplace in user_birthplace else "")
-                    })
-                    processed_user_ids.add(doc.id)
-
-        # 2. 出身地での検索（出身地が指定されており、趣味のみの検索で見つからなかった場合）
-        if search_birthplace:
-            print(f"出身地「{search_birthplace}」で検索中...")
-            # 全てのドキュメントを取得して出身地をチェック
-            all_docs = db.collection(collection_name).stream()
-
-            for doc in all_docs:
-                if doc.id in processed_user_ids:
-                    continue
-
-                profile_data = doc.to_dict()
-                user_birthplace = profile_data.get('birthplace', '')
-
-                # 出身地にマッチするかチェック
-                if search_birthplace in user_birthplace:
-                    # 趣味の条件もチェック（指定されている場合）
-                    hobby_match = True
-                    if search_hobby:
-                        hobby_list = profile_data.get('hobby', [])
-                        hobby_match = search_hobby in hobby_list
-
-                    if hobby_match:
-                        hobby_list = profile_data.get('hobby', [])
-                        hobby_string = ', '.join(hobby_list) if isinstance(hobby_list, list) else str(hobby_list)
-
-                        found_users.append({
-                            "name": profile_data.get('name', '名前なし'),
-                            "name_roman": profile_data.get('name_roman', 'Unknown Name'),
-                            "hobby": hobby_string,
-                            "birthplace": user_birthplace,
-                            "department": profile_data.get('department', '部署不明'),
-                            "matched_hobby": search_hobby if search_hobby and search_hobby in hobby_list else None,
-                            "matched_birthplace": search_birthplace,
-                            "match_type": "birthplace" + ("_and_hobby" if search_hobby and search_hobby in hobby_list else "")
-                        })
-                        processed_user_ids.add(doc.id)
-
+            # ご要望のあった詳細情報を含む形式でユーザー情報をリストに追加
+            found_users.append({
+                "name": profile_data.get('name', '名前なし'),
+                "name_roman": profile_data.get('name_roman', 'Unknown Name'),
+                "hobby": hobby_string,
+                "birthplace": profile_data.get('birthplace', '不明'),
+                "department": profile_data.get('department', '部署不明'),
+                "matched_hobby": search_hobby if search_hobby else None,
+                "matched_birthplace": search_birthplace if search_birthplace else None,
+                "match_type": match_type
+            })
 
         print(f"{len(found_users)}件見つかりました。")
 
