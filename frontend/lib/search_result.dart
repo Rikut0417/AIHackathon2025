@@ -283,6 +283,27 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               // タイトル行
               Row(
                 children: [
+                  // 戻るボタン
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.textLight.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: AppColors.textDark,
+                          size: ResponsiveHelper.getIconSize(context, IconSizeType.small),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
