@@ -23,7 +23,11 @@ void main() async {
   
   // Firebase初期化後の認証状態を確認
   final authService = AuthService();
-  print('🚀 App started - Current user: ${authService.currentUser?.email ?? "Not logged in"}');
+  // 開発時のみログ出力
+  assert(() {
+    debugPrint('🚀 App started - Current user: ${authService.currentUser?.email ?? "Not logged in"}');
+    return true;
+  }());
   
   runApp(const MyApp());
 }
@@ -121,7 +125,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _isFirstLaunchChecked = true;
       });
     } catch (e) {
-      print('❌ Error checking first launch: $e');
+      debugPrint('❌ Error checking first launch: $e');
       setState(() {
         _isFirstLaunch = false;
         _isFirstLaunchChecked = true;
@@ -145,30 +149,46 @@ class _AuthWrapperState extends State<AuthWrapper> {
     return StreamBuilder<User?>(
       stream: AuthService().authStateChanges,
       builder: (context, snapshot) {
-        print('🔄 AuthWrapper rebuild - ConnectionState: ${snapshot.connectionState}');
-        print('📊 Has data: ${snapshot.hasData}');
-        print('👤 User: ${snapshot.data?.email ?? "null"}');
-        print('🔍 Snapshot error: ${snapshot.error}');
+        // 開発時のみログ出力
+        assert(() {
+          debugPrint('🔄 AuthWrapper rebuild - ConnectionState: ${snapshot.connectionState}');
+          debugPrint('📊 Has data: ${snapshot.hasData}');
+          debugPrint('👤 User: ${snapshot.data?.email ?? "null"}');
+          debugPrint('🔍 Snapshot error: ${snapshot.error}');
+          return true;
+        }());
         
         // エラーがある場合はログイン画面を表示
         if (snapshot.hasError) {
-          print('❌ Auth error - Showing LoginScreen');
+          assert(() {
+            debugPrint('❌ Auth error - Showing LoginScreen');
+            return true;
+          }());
           return const LoginScreen();
         }
         
         // 接続待機中はスプラッシュ画面（ローディング中）
         if (snapshot.connectionState == ConnectionState.waiting) {
-          print('⏳ Showing SplashScreen (loading)');
+          assert(() {
+            debugPrint('⏳ Showing SplashScreen (loading)');
+            return true;
+          }());
           return const SplashScreen(isFirstLaunch: false);
         }
         
         // データがある（ログイン済み）の場合はホーム画面
         if (snapshot.hasData && snapshot.data != null) {
-          print('✅ User logged in - Showing HomeScreen');
+          assert(() {
+            debugPrint('✅ User logged in - Showing HomeScreen');
+            return true;
+          }());
           return const HomeScreen();
         } else {
           // データがない（未ログイン）の場合はログイン画面
-          print('❌ User not logged in - Showing LoginScreen');
+          assert(() {
+            debugPrint('❌ User not logged in - Showing LoginScreen');
+            return true;
+          }());
           return const LoginScreen();
         }
       },

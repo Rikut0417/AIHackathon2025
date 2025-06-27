@@ -7,10 +7,6 @@ import 'services/firebase_search_service.dart';
 import 'utils/responsive_helper.dart';
 import 'package:flutter/services.dart';
 
-
-
-
-
 /// 統一デザインによる新しい検索結果画面
 /// スプラッシュ・オンボーディング・ホーム画面との一貫性を保つ
 class SearchResultScreen extends StatefulWidget {
@@ -38,7 +34,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   static const int _itemsPerPage = 12;
   late ScrollController _scrollController;
 
-  Set<String> _selectedUserNames = <String>{};
+  final Set<String> _selectedUserNames = <String>{};
   bool _isAllCurrentPageSelected = false;
 
   // アニメーションコントローラー
@@ -224,7 +220,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         child: SafeArea(
           child: Stack(
             children: [
-
               // メインコンテンツ（全体スクロール可能）
               ResponsiveWrapper(
                 child: SingleChildScrollView(
@@ -238,13 +233,12 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       // 検索情報バー（常に表示）
                       _buildSearchInfoBar(),
                       
-              // メインコンテンツ
-              Expanded(
-                child: _isLoading
-                    ? _buildLoadingState()
-                    : _errorMessage != null
-                        ? _buildErrorState()
-                        : _buildResultsList(),
+                      // メインコンテンツ
+                      _isLoading
+                          ? _buildLoadingState()
+                          : _errorMessage != null
+                              ? _buildErrorState()
+                              : _buildResultsList(),
                       
                       // ページネーションボタン用の余白（固定ボタンの高さ分）
                       if (showPagination)
@@ -252,10 +246,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     ],
                   ),
                 ),
-
-
-
-
               ),
               
               // 固定ページネーションボタン
@@ -288,22 +278,22 @@ class _SearchResultScreenState extends State<SearchResultScreen>
             color: AppColors.cardBackground,
             boxShadow: AppShadows.soft,
           ),
-
-
-          const SizedBox(height: AppSpacing.md),
-
-          // 検索条件サマリー
-          AppCard(
-            margin: EdgeInsets.zero,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryIndigo.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-
+          child: Column(
+            children: [
+              // タイトル行
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.search,
+                      color: AppColors.primaryIndigo,
+                      size: iconSize,
+                    ),
                   ),
                   SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                   Expanded(
@@ -369,67 +359,61 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               ),
             ],
           ),
-
         );
       },
     );
   }
-
 
   /// 検索情報バーを構築（常に表示）
   Widget _buildSearchInfoBar() {
     return ResponsiveBuilder(
       builder: (context, deviceType) {
         final padding = ResponsiveHelper.getSpacing(context, SpacingType.lg);
-        final iconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
-        final bodyFontSize = ResponsiveHelper.getFontSize(context, FontSizeType.body);
         
-        final totalPages = _searchResults.isNotEmpty ? (_searchResults.length / _itemsPerPage).ceil() : 0;
-
         return Padding(
           padding: EdgeInsets.all(padding),
-
-
-          if (!_isLoading && _errorMessage == null && _searchResults.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              margin: EdgeInsets.zero,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryTeal.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.group_add,
-                      color: AppColors.primaryTeal,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  const Expanded(
-                    child: Text(
-                      '招待したい人のチェックボックスにチェックを入れて、出力ボタンを押してください',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textDark,
-                        fontWeight: FontWeight.w500,
+          child: Column(
+            children: [
+              if (!_isLoading && _errorMessage == null && _searchResults.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppCard(
+                  margin: EdgeInsets.zero,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.group_add,
+                          color: AppColors.primaryTeal,
+                          size: 20,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: AppSpacing.md),
+                      const Expanded(
+                        child: Text(
+                          '招待したい人のチェックボックスにチェックを入れて、出力ボタンを押してください',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textDark,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
-
-
 
   /// ローディング状態を構築
   Widget _buildLoadingState() {
@@ -452,8 +436,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   }
 
   /// 検索結果リストを構築
-  // 380-445行目
-  /// 検索結果リストを構築
   Widget _buildResultsList() {
     if (_searchResults.isEmpty) {
       return const AppError(
@@ -469,35 +451,26 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
     return Column(
       children: [
-
         // 結果数とコントロール
-
         Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-
           child: FadeTransition(
             opacity: _fadeAnimation,
-
             child: Column(
               children: [
                 // 結果数表示
-
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.people,
                       color: AppColors.primaryIndigo,
-                      size: iconSize,
+                      size: 24,
                     ),
                     SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                     Text(
-                      _isLoading 
-                          ? '検索中...'
-                          : _errorMessage != null
-                              ? 'エラーが発生しました'
-                              : '${_searchResults.length}件見つかりました',
-                      style: TextStyle(
-                        fontSize: bodyFontSize,
+                      '${_searchResults.length}件見つかりました',
+                      style: const TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
@@ -505,16 +478,19 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                   ],
                 ),
 
-                // ページ情報表示（検索結果欄の右上）
-                if (!_isLoading && _errorMessage == null && totalPages > 1)
-                  Text(
-                    '${_currentPage + 1} / $totalPages ページ',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.caption),
-                      color: AppColors.textMedium,
-                      fontWeight: FontWeight.w500,
-
-
+                // ページ情報表示
+                if (totalPages > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      '${_currentPage + 1} / $totalPages ページ',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.caption),
+                        color: AppColors.textMedium,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
 
                 const SizedBox(height: AppSpacing.md),
 
@@ -538,7 +514,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                           ),
                         ),
                       ],
-
                     ),
 
                     const SizedBox(width: AppSpacing.lg),
@@ -555,159 +530,29 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     ),
                   ],
                 ),
-
               ],
             ),
           ),
-
-        );
-      },
-    );
-  }
-
-  /// 検索結果コンテンツを構築（スクロール可能）
-  Widget _buildResultsContent() {
-    // ローディング状態
-    if (_isLoading) {
-      return Container(
-        height: 400,
-        padding: EdgeInsets.all(ResponsiveHelper.getSpacing(context, SpacingType.lg)),
-        child: const Center(
-          child: AppLoading(
-            message: '検索中...',
-            size: 50,
-
         ),
 
         // 検索結果リスト
-        Expanded(
-
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                return _buildResultCard(_searchResults[index], index);
-              },
-            ),
-
+        SlideTransition(
+          position: _slideAnimation,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: currentPageResults.length,
+            itemBuilder: (context, index) {
+              return _buildResultCard(currentPageResults[index], index);
+            },
           ),
         ),
-      );
-    }
-    
-    // エラー状態
-    if (_errorMessage != null) {
-      return Container(
-        height: 400,
-        padding: EdgeInsets.all(ResponsiveHelper.getSpacing(context, SpacingType.lg)),
-        child: AppError(
-          message: _errorMessage!,
-          buttonText: '再試行',
-          onRetry: _performSearch,
-          icon: Icons.search_off,
-        ),
-      );
-    }
-    
-    // 検索結果が空の場合
-    if (_searchResults.isEmpty) {
-      return Container(
-        height: 400,
-        padding: EdgeInsets.all(ResponsiveHelper.getSpacing(context, SpacingType.lg)),
-        child: const AppError(
-          message: '条件に一致するプロフィールが見つかりませんでした',
-          icon: Icons.person_search,
-        ),
-      );
-    }
-
-    // 検索結果が存在する場合のみ表示
-    return ResponsiveBuilder(
-      builder: (context, deviceType) {
-        final gridColumns = ResponsiveHelper.getGridColumns(context);
-        final padding = ResponsiveHelper.getSpacing(context, SpacingType.lg);
-        
-        final startIndex = _currentPage * _itemsPerPage;
-        final endIndex = (startIndex + _itemsPerPage).clamp(0, _searchResults.length);
-        final currentPageResults = _searchResults.sublist(startIndex, endIndex);
-
-        // 結果リスト - グリッドまたはリスト表示
-        return gridColumns == 1
-            ? _buildListViewContent(currentPageResults, padding)
-            : _buildGridViewContent(currentPageResults, gridColumns, padding);
-      },
-    );
-  }
-  
-  /// リスト表示コンテンツを構築（モバイル用）
-  Widget _buildListViewContent(List<Map<String, String>> results, double padding) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: padding),
-      child: Column(
-        children: results.asMap().entries.map((entry) {
-          final index = entry.key;
-          final result = entry.value;
-          return SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 200 + (index * 50)),
-                child: _buildResultCard(result, index),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-  
-  /// グリッド表示コンテンツを構築（タブレット・デスクトップ用）
-  Widget _buildGridViewContent(List<Map<String, String>> results, int gridColumns, double padding) {
-    return Padding(
-      padding: EdgeInsets.all(padding),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisSpacing = ResponsiveHelper.getSpacing(context, SpacingType.md);
-          final mainAxisSpacing = ResponsiveHelper.getSpacing(context, SpacingType.md);
-          final cardWidth = (constraints.maxWidth - (crossAxisSpacing * (gridColumns - 1))) / gridColumns;
-          final cardHeight = cardWidth / (gridColumns == 2 ? 1.2 : 1.0);
-          
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Wrap(
-              alignment: WrapAlignment.start,
-              spacing: crossAxisSpacing,
-              runSpacing: mainAxisSpacing,
-              children: results.asMap().entries.map((entry) {
-                final index = entry.key;
-                final result = entry.value;
-                return SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 200 + (index * 50)),
-                      width: cardWidth,
-                      height: cardHeight,
-                      child: _buildResultCard(result, index),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          );
-        },
-      ),
+      ],
     );
   }
 
   /// 個別の結果カードを構築
   Widget _buildResultCard(Map<String, String> result, int index) {
-    // マッチング条件の確認（現在は表示のみで使用していないが、将来的な機能拡張用）
-
     return ResponsiveBuilder(
       builder: (context, deviceType) {
         final cardMargin = deviceType == DeviceType.mobile 
@@ -726,18 +571,19 @@ class _SearchResultScreenState extends State<SearchResultScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-
               // ヘッダー行
               Row(
                 children: [
-                  // アバター
-              Checkbox(
-                value: _selectedUserNames.contains(result['name']),
-                onChanged: (_) => _toggleUserSelection(result['name'] ?? ''),
-                activeColor: AppColors.primaryIndigo,
-              ),
+                  // チェックボックス
+                  Checkbox(
+                    value: _selectedUserNames.contains(result['name']),
+                    onChanged: (_) => _toggleUserSelection(result['name'] ?? ''),
+                    activeColor: AppColors.primaryIndigo,
+                  ),
 
-              const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
+
+                  // アバター
                   Container(
                     width: avatarSize,
                     height: avatarSize,
@@ -755,47 +601,10 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                           fontWeight: FontWeight.bold,
                           color: AppColors.textWhite,
                         ),
-
-
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Center(
-                  child: Text(
-                    result['name']?.isNotEmpty == true
-                        ? result['name']!.substring(0, 1)
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textWhite,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: AppSpacing.md),
-
-              // 名前と部署
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      result['name'] ?? '名前なし',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
-
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(width: spacing),
                   
                   // 名前と部署
@@ -837,20 +646,10 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
             ],
           ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // 詳細情報
-          _buildHighlightInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明', widget.hobbies),
-          const SizedBox(height: AppSpacing.sm),
-          _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
-        ],
-      ),
-
+        );
+      },
     );
   }
-
-
 
   /// ハイライト付き情報行を構築
   Widget _buildHighlightInfoRow(IconData icon, String label, String value, String query) {
@@ -893,7 +692,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       },
     );
   }
-
 
   /// 固定ページネーションUIを構築
   Widget _buildFixedPagination(int totalPages) {
@@ -1006,11 +804,16 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       ),
                     ),
                   ],
-
+          ),
+        ),
+      ),
+    );
+  }
 
   /// 選択したメンバーのメンションをコピー
   void _copySelectedMentions() async {
     if (_selectedUserNames.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('メンバーを選択してください'),
@@ -1053,17 +856,18 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
         // 成功通知（改行を半角スペースに置き換えて表示）
         final displayText = mentions.join(' ');
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('「$displayText」をクリップボードにコピーしました'),
             backgroundColor: AppColors.successGreen,
             duration: const Duration(seconds: 3),
-
           ),
         );
       }
     } catch (e) {
       // エラー通知
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('コピーに失敗しました: ${e.toString()}'),
@@ -1073,8 +877,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       );
     }
   }
-}
-
 
   /// ページを変更
   void _changePage(int newPage) {
@@ -1097,6 +899,4 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       _slideController.forward();
     });
   }
-
 }
-

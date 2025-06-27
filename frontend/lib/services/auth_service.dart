@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,7 +12,10 @@ class AuthService {
   // 認証状態の変更を監視
   Stream<User?> get authStateChanges {
     return _auth.authStateChanges().map((user) {
-      print('🔍 Auth state changed: ${user?.email ?? "Not logged in"}');
+      assert(() {
+        debugPrint('🔍 Auth state changed: ${user?.email ?? "Not logged in"}');
+        return true;
+      }());
       return user;
     });
   }
@@ -19,7 +23,10 @@ class AuthService {
   // 現在のユーザーを取得
   User? get currentUser {
     final user = _auth.currentUser;
-    print('👤 Current user: ${user?.email ?? "Not logged in"}');
+    assert(() {
+      debugPrint('👤 Current user: ${user?.email ?? "Not logged in"}');
+      return true;
+    }());
     return user;
   }
 
@@ -32,7 +39,7 @@ class AuthService {
       );
       return result.user;
     } catch (e) {
-      print('Sign up error: $e');
+      debugPrint('Sign up error: $e');
       return null;
     }
   }
@@ -46,7 +53,7 @@ class AuthService {
       );
       return result.user;
     } catch (e) {
-      print('Sign in error: $e');
+      debugPrint('Sign in error: $e');
       return null;
     }
   }  // サインアウト
@@ -54,24 +61,39 @@ class AuthService {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) {
-        print('⚠️ No user to sign out');
+        assert(() {
+          debugPrint('⚠️ No user to sign out');
+          return true;
+        }());
         return;
       }
       
-      print('🚪 Signing out user: ${currentUser.email}');
+      assert(() {
+        debugPrint('🚪 Signing out user: ${currentUser.email}');
+        return true;
+      }());
       await _auth.signOut();
-      print('✅ Sign out successful');
+      assert(() {
+        debugPrint('✅ Sign out successful');
+        return true;
+      }());
       
       // 強制的に認証状態をリフレッシュ
       await Future.delayed(const Duration(milliseconds: 100));
-      print('🔄 Checking auth state after signout: ${_auth.currentUser?.email ?? "null"}');
+      assert(() {
+        debugPrint('🔄 Checking auth state after signout: ${_auth.currentUser?.email ?? "null"}');
+        return true;
+      }());
       
       // 追加: 認証状態の変更を強制的にトリガー
       await _auth.authStateChanges().first;
-      print('🔄 Auth state stream updated');
+      assert(() {
+        debugPrint('🔄 Auth state stream updated');
+        return true;
+      }());
       
     } catch (e) {
-      print('❌ Sign out error: $e');
+      debugPrint('❌ Sign out error: $e');
       rethrow;
     }
   }
