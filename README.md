@@ -1,115 +1,226 @@
-# AI ハッカソン 2025 - ProfileAI
+# ProfileAI - プロフィール検索アプリケーション
 
-## 🛠️ 技術スタック
+## 概要
 
-| 分野 | 技術 | 目的 |
-|------|------|------|
-| **フロントエンド** | Flutter (Dart) | クロスプラットフォーム対応のUIアプリ |
-| **バックエンド** | Python (Flask) | API サーバー・データ処理 |
-| **データベース** | Firebase Realtime DB | ユーザーデータ・検索結果保存 |
-| **認証** | Firebase Auth | ユーザー認証・セキュリティ |
-| **デプロイ** | Google Cloud Platform | 本番環境への配信 |
+ProfileAIは、趣味や出身地を基にしたAIプロフィール検索アプリケーションです。FirebaseとGoogle Gemini APIを活用して、ユーザー同士のマッチングと、マッチした興味に基づくサークル活動のしおりの自動生成機能を提供します。
 
-## 🚀 クイックスタート（新規参画者向け）
+## 技術スタック
 
-### 📋 前提条件
-
-以下のソフトウェアをインストールしてください：
-
-| ソフトウェア | バージョン | インストールリンク | 必須度 |
-|-------------|-----------|------------------|-------|
-| **Flutter** | 最新安定版 | [flutter.dev](https://flutter.dev/docs/get-started/install) | 🔴 必須 |
-| **Python** | 3.8 以上 | [python.org](https://python.org/downloads/) | 🔴 必須 |
-| **Git** | 最新版 | [git-scm.com](https://git-scm.com/) | 🔴 必須 |
-| **VS Code** | 最新版 | [code.visualstudio.com](https://code.visualstudio.com/) | 🟡 推奨 |
-
-#### 1️⃣ リポジトリのクローン
-
-```bash
-git clone <repository-url>
-cd AIHackathon2025
-```
-
-#### 2️⃣ フロントエンド（Flutter）の設定
-
-```bash
-cd frontend
-
-#セットアップ
-flutter pub get
-```
-
-#### 3️⃣ バックエンド（Python）の設定
-
-```bash
-cd backend
-
-# 仮想環境の作成（推奨）
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate     # Windows
-
-# 依存関係のインストール
-pip install -r ../requirements.txt
-
-```
-
-#### 4️⃣ 開発環境の確認
+### バックエンド
+- **Python 3.11**
+- **Flask** - WebAPIフレームワーク
+- **Firebase Admin SDK** - 認証・データベース
+- **Google Gemini API** - しおり生成
+- **Firestore** - NoSQLデータベース
 
 ### フロントエンド
+- **Flutter 3.2+** - クロスプラットフォーム開発
+- **Firebase Auth** - ユーザー認証
+- **HTTP** - API通信
 
+## 機能
+
+- ✅ **ユーザー認証** (Firebase Auth)
+- ✅ **プロフィール検索** (趣味・出身地ベース)
+- ✅ **AI生成しおり** (Gemini API使用)
+- ✅ **レスポンシブデザイン**
+
+## ローカル開発環境のセットアップ
+
+### 前提条件
+
+以下のツールがインストールされている必要があります：
+
+- **Python 3.11+**
+- **Flutter 3.2+**
+- **Git**
+
+### 1. リポジトリのクローン
+
+\`\`\`bash
+git clone <repository-url>
+cd AIHackathon2025
+\`\`\`
+
+### 2. バックエンドのセットアップ
+
+#### 2.1 依存関係のインストール
+
+\`\`\`bash
+cd backend
+pip install -r requirements.txt
+\`\`\`
+
+#### 2.2 環境変数の設定
+
+\`\`\`bash
+# .env.exampleをコピーして編集
+cp .env.example .env
+\`\`\`
+
+\`.env\`ファイルを以下のように設定：
+
+\`\`\`env
+# Firebase設定
+FIREBASE_SERVICE_ACCOUNT_KEY="./serviceAccountKey.json"
+
+# Google Gemini API設定
+GEMINI_API_KEY="your_actual_gemini_api_key"
+
+# Google Custom Search API設定 (任意)
+GOOGLE_SEARCH_API_KEY="your_google_search_api_key"
+GOOGLE_SEARCH_ENGINE_ID="your_search_engine_id"
+\`\`\`
+
+#### 2.3 Firebaseサービスアカウントキーの配置
+
+1. Firebase Console から サービスアカウントキー（JSON）をダウンロード
+2. \`backend/serviceAccountKey.json\` として保存
+
+#### 2.4 バックエンドの起動
+
+\`\`\`bash
+# backend/ディレクトリで実行
+python main.py
+\`\`\`
+
+サーバーは \`http://localhost:8080\` で起動します。
+
+### 3. フロントエンドのセットアップ
+
+#### 3.1 依存関係のインストール
+
+\`\`\`bash
 cd frontend
-flutter run
+flutter pub get
+\`\`\`
+
+#### 3.2 環境変数の設定
+
+\`\`\`bash
+# .env.exampleをコピーして編集
+cp .env.example .env
+\`\`\`
+
+\`.env\`ファイルを以下のように設定：
+
+\`\`\`env
+# Firebase設定（Firebase Consoleから取得）
+FIREBASE_API_KEY=your_firebase_api_key
+FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID=your_app_id
+
+# API Base URL
+API_BASE_URL=http://localhost:8080
+\`\`\`
+
+#### 3.3 フロントエンドの起動
+
+\`\`\`bash
+# frontend/ディレクトリで実行
+flutter run -d web
+\`\`\`
+
+アプリケーションは \`http://localhost:3000\` (または自動割り当てポート) で起動します。
+
+## API設定方法
+
+### Google Gemini API
+
+1. [Google AI Studio](https://makersuite.google.com/app/apikey) にアクセス
+2. APIキーを作成
+3. \`backend/.env\` の \`GEMINI_API_KEY\` に設定
+
+### Firebase設定
+
+1. [Firebase Console](https://console.firebase.google.com/) でプロジェクト作成
+2. Authentication, Firestore を有効化
+3. ウェブアプリを追加してConfig情報を取得
+4. \`frontend/.env\` に設定
+
+## 開発用コマンド
 
 ### バックエンド
 
+\`\`\`bash
+# 開発サーバー起動
 cd backend
 python main.py
 
-## 📁 プロジェクト構成
+# 依存関係追加時
+pip freeze > requirements.txt
+\`\`\`
 
-```
+### フロントエンド
+
+\`\`\`bash
+# Web開発
+flutter run -d web
+
+# 依存関係の取得
+flutter pub get
+
+# ビルド
+flutter build web
+\`\`\`
+
+## デプロイ
+
+### Google Cloud Run (本番環境)
+
+プロジェクトは既にGoogle Cloud Runにデプロイされています：
+
+- **フロントエンド**: https://flutter-frontend-156065435185.us-central1.run.app
+- **バックエンド**: https://flask-backend-156065435185.us-central1.run.app
+
+## トラブルシューティング
+
+### よくある問題
+
+1. **Firebase接続エラー**
+   - サービスアカウントキーのパスを確認
+   - Firebase プロジェクトの設定を確認
+
+2. **Flutter pub get エラー**
+   - Flutter SDKのバージョンを確認
+   - \`flutter clean && flutter pub get\` を実行
+
+3. **API接続エラー**
+   - バックエンドが起動しているか確認
+   - \`.env\` の \`API_BASE_URL\` を確認
+
+## プロジェクト構造
+
+\`\`\`
 AIHackathon2025/
-├── frontend/           # Flutter アプリケーション
-│   ├── lib/
-│   │   ├── splash_screen.dart      # スプラッシュ画面
-│   │   ├── onboarding_screen.dart  # オンボーディング
-│   │   ├── home_screen.dart        # ホーム画面
-│   │   ├── search_result.dart      # 検索結果
-│   │   └── constants/              # デザインシステム
-│   ├── README.md       # フロントエンド詳細ドキュメント
-│   ├── setup.sh        # 自動セットアップスクリプト
-│   └── Makefile        # 開発用コマンド
-├── backend/            # Python API サーバー
-│   └── main.py         # Flask サーバー
+├── backend/              # Flaskバックエンド
+│   ├── main.py          # メインアプリケーション
+│   ├── requirements.txt # Python依存関係
+│   ├── .env            # 環境変数（要設定）
+│   └── .env.example    # 環境変数テンプレート
+├── frontend/            # Flutterフロントエンド
+│   ├── lib/            # Dartソースコード
+│   ├── pubspec.yaml    # Flutter依存関係
+│   ├── .env           # 環境変数（要設定）
+│   └── .env.example   # 環境変数テンプレート
+├── .gitignore          # Git無視ファイル
 └── README.md           # このファイル
-```
+\`\`\`
 
-```
+## ライセンス
 
-### 💡 開発のヒント
+このプロジェクトは内部開発用です。
 
-- **フロントエンド**: `lib/` フォルダ内のファイルを編集
-- **バックエンド**: `backend/main.py` を中心に開発
-- **デザイン**: `lib/constants/app_colors.dart` で統一カラーを管理
-- **テスト**: 新機能追加時は必ずテストも追加
+## 貢献
 
+1. Feature ブランチを作成
+2. 変更をコミット
+3. プルリクエストを作成
 
+## 開発チーム
 
-### よくある問題と解決方法
-
-| 問題 | 症状 | 解決方法 |
-|------|------|----------|
-| **Flutter 環境エラー** | `flutter doctor` でエラー | 不足しているツールをインストール |
-| **依存関係エラー** | `pub get` 失敗 | `flutter clean && flutter pub get` |
-| **ビルドエラー** | コンパイルエラー | `flutter clean && flutter pub upgrade` |
-| **サーバー接続エラー** | API 呼び出し失敗 | バックエンドが起動しているか確認 |
-| **CORS エラー** | Web でAPI エラー | `--web-browser-flag "--disable-web-security"` |
-
-
-# 1. フロントエンド起動（ターミナル1）
-cd frontend && flutter run -d web-server
-
-# 2. バックエンド起動（ターミナル2）
-cd backend && python main.py
-
+AIハッカソン2025 チーム

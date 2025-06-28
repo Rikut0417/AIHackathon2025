@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:html' as html;
 
 class FirebaseSearchService {
-  static const String baseUrl = 'http://localhost:5000';
+  static String get baseUrl {
+    // dart-defineまたは環境変数から取得
+    const url = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://flask-backend-156065435185.us-central1.run.app');
+    return url;
+  }
 
   // 新しいデザインに対応したインスタンスメソッド
   Future<List<Map<String, dynamic>>> searchProfiles(
@@ -66,6 +71,44 @@ class FirebaseSearchService {
         'success': false,
         'error': 'ネットワークエラー: $e',
       };
+    }
+  }
+
+  // しおりダウンロード機能
+  static Future<bool> downloadBooklet({
+    required String hobby,
+    required String birthplace,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/generate-booklet');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'hobby': hobby,
+          'birthplace': birthplace,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // ブラウザでダウンロードを開始
+        final blob = html.Blob([response.bodyBytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', 'サークル活動しおり_${hobby.isNotEmpty ? hobby : birthplace}.txt')
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        return true;
+      } else {
+        print('しおりダウンロードエラー: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('しおりダウンロードエラー: $e');
+      return false;
     }
   }
 }

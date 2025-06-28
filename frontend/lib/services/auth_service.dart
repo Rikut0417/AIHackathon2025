@@ -78,17 +78,8 @@ class AuthService {
         return true;
       }());
       
-      // 強制的に認証状態をリフレッシュ
-      await Future.delayed(const Duration(milliseconds: 100));
       assert(() {
-        debugPrint('🔄 Checking auth state after signout: ${_auth.currentUser?.email ?? "null"}');
-        return true;
-      }());
-      
-      // 追加: 認証状態の変更を強制的にトリガー
-      await _auth.authStateChanges().first;
-      assert(() {
-        debugPrint('🔄 Auth state stream updated');
+        debugPrint('🔄 Sign out completed successfully');
         return true;
       }());
       
