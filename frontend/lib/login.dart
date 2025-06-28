@@ -385,6 +385,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.body),
                             ),
                           ),
+                          SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.xs)),
+                          Text(
+                            '6文字以上',
+                            style: TextStyle(
+                              color: AppColors.errorRed,
+                              fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.caption),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(height: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
