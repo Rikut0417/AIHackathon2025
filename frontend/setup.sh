@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ProfileAI フロントエンド セットアップスクリプト
+# Me-Too!（ミートゥー） フロントエンド セットアップスクリプト
 # 新規参画者向けの自動セットアップ
 
 set -e  # エラー時に停止
@@ -15,13 +15,13 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # プロジェクト情報
-PROJECT_NAME="ProfileAI"
+PROJECT_NAME="Me-Too!（ミートゥー）"
 PROJECT_VERSION="1.0.0"
 
 print_header() {
     echo -e "${PURPLE}"
     echo "╔══════════════════════════════════════════════╗"
-    echo "║           ProfileAI セットアップ             ║"
+    echo "║           Me-Too!（ミートゥー） セットアップ             ║"
     echo "║        AIハッカソン2025 フロントエンド        ║"
     echo "╚══════════════════════════════════════════════╝"
     echo -e "${NC}"

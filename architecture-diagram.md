@@ -1,4 +1,4 @@
-# ProfileAI アーキテクチャ図
+# Me-Too!（ミートゥー） アーキテクチャ図
 
 ```mermaid
 graph TD

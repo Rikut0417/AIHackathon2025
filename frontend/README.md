@@ -1,4 +1,4 @@
-# ProfileAI - AI ハッカソン 2025 フロントエンドアプリ
+# Me-Too!（ミートゥー） - AI ハッカソン 2025 フロントエンドアプリ
 
 <div align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" />
@@ -9,7 +9,7 @@
 
 ## 📖 概要
 
-ProfileAI は、AI 技術を活用したプロフィール検索アプリです。ユーザーは趣味や出身地を入力することで、条件に一致する人を検索できます。
+Me-Too!（ミートゥー） は、AI 技術を活用したプロフィール検索アプリです。ユーザーは趣味や出身地を入力することで、条件に一致する人を検索できます。
 
 ### ✨ 主な機能
 
