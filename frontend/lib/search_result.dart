@@ -803,12 +803,14 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         final spacing = ResponsiveHelper.getSpacing(context, SpacingType.md);
         final smallSpacing = ResponsiveHelper.getSpacing(context, SpacingType.sm);
         
-        return AppCard(
-          margin: cardMargin,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        return GestureDetector(
+          onTap: () => _toggleUserSelection(result['name'] ?? ''),
+          child: AppCard(
+            margin: cardMargin,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
               // ヘッダー行
               Row(
                 children: [
@@ -884,7 +886,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
             ],
           ),
-        );
+        ));
       },
     );
   }
