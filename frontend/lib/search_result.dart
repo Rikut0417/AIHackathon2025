@@ -220,6 +220,40 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         child: SafeArea(
           child: Stack(
             children: [
+              // 戻るボタン（画面左上に固定）
+              Positioned(
+                top: ResponsiveHelper.getSpacing(context, SpacingType.md),
+                left: ResponsiveHelper.getSpacing(context, SpacingType.md),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBackground,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: AppColors.textDark,
+                          size: ResponsiveHelper.getIconSize(context, IconSizeType.medium),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
               // メインコンテンツ（全体スクロール可能）
               ResponsiveWrapper(
                 child: SingleChildScrollView(
@@ -227,7 +261,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
-                      // ヘッダー
+                      // ヘッダー（戻るボタンなし）
                       _buildHeader(),
                       
                       // 検索情報バー（常に表示）
@@ -273,7 +307,10 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         final searchIconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
         
         return Container(
-          padding: EdgeInsets.all(headerPadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: headerPadding,
+            vertical: headerPadding,
+          ),
           decoration: const BoxDecoration(
             color: AppColors.cardBackground,
             boxShadow: AppShadows.soft,
@@ -283,27 +320,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               // タイトル行
               Row(
                 children: [
-                  // 戻るボタン
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.textLight.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          color: AppColors.textDark,
-                          size: ResponsiveHelper.getIconSize(context, IconSizeType.small),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
+                  // 左側スペース削除（戻るボタン分の余白をなくす）
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -515,41 +532,90 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
                 const SizedBox(height: AppSpacing.md),
 
-                // 選択操作エリア
-                Row(
-                  children: [
-                    // 全選択チェックボックス
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _isAllCurrentPageSelected,
-                          onChanged: (_) => _toggleAllCurrentPageSelection(),
-                          activeColor: AppColors.primaryIndigo,
-                        ),
-                        const Text(
-                          'すべて選択',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textDark,
+                // 選択操作エリア（レスポンシブレイアウト）
+                ResponsiveBuilder(
+                  builder: (context, deviceType) {
+                    final isMobile = deviceType == DeviceType.mobile;
+                    final isSmallScreen = MediaQuery.of(context).size.width < 400;
+                    
+                    if (isMobile || isSmallScreen) {
+                      // モバイル・小さい画面: 縦並びレイアウト
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 全選択チェックボックス
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _isAllCurrentPageSelected,
+                                onChanged: (_) => _toggleAllCurrentPageSelection(),
+                                activeColor: AppColors.primaryIndigo,
+                              ),
+                              const Text(
+                                'すべて選択',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
+                          
+                          const SizedBox(height: AppSpacing.sm),
+                          
+                          // メンション出力ボタン（短いテキスト）
+                          SizedBox(
+                            width: double.infinity,
+                            child: AppButton(
+                              text: isSmallScreen ? 'メンション出力' : 'メンションをコピー',
+                              onPressed: _copySelectedMentions,
+                              backgroundColor: AppColors.accentCyan,
+                              icon: Icons.content_copy,
+                              height: 40,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // デスクトップ・大きい画面: 横並びレイアウト
+                      return Row(
+                        children: [
+                          // 全選択チェックボックス
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _isAllCurrentPageSelected,
+                                onChanged: (_) => _toggleAllCurrentPageSelection(),
+                                activeColor: AppColors.primaryIndigo,
+                              ),
+                              const Text(
+                                'すべて選択',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
 
-                    const SizedBox(width: AppSpacing.lg),
+                          const SizedBox(width: AppSpacing.lg),
 
-                    // メンション出力ボタン
-                    Expanded(
-                      child: AppButton(
-                        text: '選択したメンバーのメンションをコピー',
-                        onPressed: _copySelectedMentions,
-                        backgroundColor: AppColors.accentCyan,
-                        icon: Icons.content_copy,
-                        height: 36,
-                      ),
-                    ),
-                  ],
+                          // メンション出力ボタン
+                          Expanded(
+                            child: AppButton(
+                              text: '選択したメンバーのメンションを出力',
+                              onPressed: _copySelectedMentions,
+                              backgroundColor: AppColors.accentCyan,
+                              icon: Icons.content_copy,
+                              height: 36,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
                 ),
               ],
             ),
