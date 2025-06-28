@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen>
                     SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.md)),
                     if (!isMobile) // モバイルでは文字を非表示
                       Text(
-                        'ProfileAI',
+                        'Me-Too!（ミートゥー）',
                         style: TextStyle(
                           fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.subtitle),
                           fontWeight: FontWeight.bold,
