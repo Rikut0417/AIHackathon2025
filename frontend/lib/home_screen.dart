@@ -172,37 +172,29 @@ class _HomeScreenState extends State<HomeScreen>
         // ログアウト実行
         await AuthService().signOut();
         
-        // 少し待ってから画面を閉じる（認証状態の変更を待つ）
-        await Future.delayed(const Duration(milliseconds: 500));
-        
         if (mounted) {
           // ローディングダイアログを閉じる
           Navigator.of(context).pop();
+          
+          // すぐにログイン画面に遷移
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
           
           // ログアウト成功メッセージ
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('ログアウトしました'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
+              duration: Duration(seconds: 2),
             ),
           );
-          
-          // 追加: より確実にするためページをリロード
-          await Future.delayed(const Duration(milliseconds: 1000));
-          // Web環境でのページリロード
-          if (mounted) {
-            // 直接ログイン画面に遷移
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
-          }
-          
-          setState(() {
-            _isLoading = false;
-          });
         }
+        
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
       // エラーハンドリング

@@ -4,7 +4,9 @@ import 'constants/app_colors.dart';
 import 'widgets/common_widgets.dart';
 import 'widgets/highlight_text.dart';
 import 'services/firebase_search_service.dart';
+import 'services/auth_service.dart';
 import 'utils/responsive_helper.dart';
+import 'login.dart';
 import 'package:flutter/services.dart';
 
 /// 統一デザインによる新しい検索結果画面
@@ -28,6 +30,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   List<Map<String, String>> _searchResults = [];
   bool _isLoading = true;
   String? _errorMessage;
+  bool _isDownloadingBooklet = false;
   
   // ページネーション関連
   int _currentPage = 0;
@@ -142,6 +145,116 @@ class _SearchResultScreenState extends State<SearchResultScreen>
     }
 
     return hobby.toString();
+  }
+
+  /// ログアウト処理
+  Future<void> _logout() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // ローディングダイアログを表示
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        // ログアウト実行
+        await AuthService().signOut();
+        
+        if (mounted) {
+          // ローディングダイアログを閉じる
+          Navigator.of(context).pop();
+          
+          // すぐにログイン画面に遷移
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
+          
+          // ログアウト成功メッセージ
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ログアウトしました'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // エラーハンドリング
+      if (mounted) {
+        Navigator.of(context).pop(); // ローディングダイアログを閉じる
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ログアウトに失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// しおりダウンロード機能
+  Future<void> _downloadBooklet() async {
+    setState(() {
+      _isDownloadingBooklet = true;
+    });
+
+    try {
+      final success = await FirebaseSearchService.downloadBooklet(
+        hobby: widget.hobbies,
+        birthplace: widget.birthplace,
+      );
+
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('サークル活動しおりをダウンロードしました！'),
+              backgroundColor: AppColors.primaryTeal,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ダウンロードに失敗しました。'),
+              backgroundColor: AppColors.errorRed,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラーが発生しました: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingBooklet = false;
+        });
+      }
+    }
   }
 
   /// 検索条件のサマリーテキストを生成
@@ -344,6 +457,16 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       ),
                     ),
                   ),
+                  // ログアウトボタン
+                  AppButton(
+                    text: 'ログアウト',
+                    onPressed: _logout,
+                    height: ResponsiveHelper.getButtonHeight(context) * 0.7,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveHelper.getSpacing(context, SpacingType.sm),
+                      vertical: ResponsiveHelper.getSpacing(context, SpacingType.xs),
+                    ),
+                  ),
                 ],
               ),
               
@@ -439,6 +562,34 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                             fontSize: 14,
                             color: AppColors.textDark,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      // しおりダウンロードボタン
+                      ElevatedButton.icon(
+                        onPressed: _isDownloadingBooklet ? null : _downloadBooklet,
+                        icon: _isDownloadingBooklet 
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.download, size: 16),
+                        label: Text(
+                          _isDownloadingBooklet ? '生成中...' : 'しおりDL',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryIndigo,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          minimumSize: const Size(0, 0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),

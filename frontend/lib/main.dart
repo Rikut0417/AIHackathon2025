@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'splash_screen.dart';
 import 'onboarding_screen.dart';
@@ -13,9 +12,6 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // .envファイルを読み込み
-  await dotenv.load(fileName: ".env");
   
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
