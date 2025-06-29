@@ -32,6 +32,9 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   String? _errorMessage;
   bool _isDownloadingBooklet = false;
   
+  // 同義語展開情報
+  Map<String, dynamic>? _searchInfo;
+  
   // ページネーション関連
   int _currentPage = 0;
   static const int _itemsPerPage = 12;
@@ -95,12 +98,15 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
     try {
       final service = FirebaseSearchService();
-      final results = await service.searchProfiles(
+      final searchResult = await service.searchProfilesWithInfo(
         widget.hobbies,
         widget.birthplace,
       );
 
       await Future.delayed(const Duration(milliseconds: 500)); // UX向上のための待機
+
+      final results = searchResult['users'] as List<Map<String, dynamic>>;
+      final searchInfo = searchResult['search_info'] as Map<String, dynamic>;
 
       setState(() {
         _searchResults = results.map((result) => <String, dynamic>{
@@ -114,6 +120,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           'matched_hobby_words': result['matched_hobby_words'] as List<dynamic>? ?? [],
           'matched_birthplace_words': result['matched_birthplace_words'] as List<dynamic>? ?? [],
         }).toList();
+        _searchInfo = searchInfo;
         _isLoading = false;
       });
 
@@ -526,6 +533,10 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           padding: EdgeInsets.all(padding),
           child: Column(
             children: [
+              // 同義語展開情報の表示
+              if (!_isLoading && _errorMessage == null && _searchInfo != null)
+                _buildSynonymExpansionInfo(),
+              
               if (!_isLoading && _errorMessage == null && _searchResults.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppCard(
@@ -1343,5 +1354,125 @@ class _SearchResultScreenState extends State<SearchResultScreen>
     Future.delayed(const Duration(milliseconds: 100), () {
       _slideController.forward();
     });
+  }
+
+  /// 同義語展開情報を表示するウィジェット
+  Widget _buildSynonymExpansionInfo() {
+    if (_searchInfo == null) return const SizedBox.shrink();
+    
+    final expandedHobbyTerms = _searchInfo!['expanded_hobby_terms'] as List<dynamic>?;
+    final expandedBirthplaceTerms = _searchInfo!['expanded_birthplace_terms'] as List<dynamic>?;
+    final originalHobby = _searchInfo!['original_hobby'] as String?;
+    final originalBirthplace = _searchInfo!['original_birthplace'] as String?;
+    
+    // 同義語展開された場合のみ表示
+    final hasHobbyExpansion = expandedHobbyTerms != null && 
+                             expandedHobbyTerms.length > 1 && 
+                             originalHobby != null && 
+                             originalHobby.isNotEmpty;
+    
+    final hasBirthplaceExpansion = expandedBirthplaceTerms != null && 
+                                  expandedBirthplaceTerms.length > 1 && 
+                                  originalBirthplace != null && 
+                                  originalBirthplace.isNotEmpty;
+    
+    if (!hasHobbyExpansion && !hasBirthplaceExpansion) {
+      return const SizedBox.shrink();
+    }
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: AppCard(
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome,
+                    color: AppColors.primaryIndigo,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                const Text(
+                  'AI同義語展開',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            
+            if (hasBirthplaceExpansion) ...[
+              _buildExpansionInfo(
+                '「$originalBirthplace」の検索結果には以下の地域も含まれています:',
+                expandedBirthplaceTerms!.where((term) => term != originalBirthplace).toList(),
+                AppColors.primaryTeal,
+              ),
+              if (hasHobbyExpansion) const SizedBox(height: AppSpacing.sm),
+            ],
+            
+            if (hasHobbyExpansion) ...[
+              _buildExpansionInfo(
+                '「$originalHobby」の検索結果には以下の関連語も含まれています:',
+                expandedHobbyTerms!.where((term) => term != originalHobby).toList(),
+                AppColors.secondaryPurple,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 展開情報の詳細表示
+  Widget _buildExpansionInfo(String title, List<dynamic> terms, Color color) {
+    if (terms.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textMedium,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: terms.map((term) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+            ),
+            child: Text(
+              term.toString(),
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          )).toList(),
+        ),
+      ],
+    );
   }
 }

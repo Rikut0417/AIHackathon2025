@@ -49,6 +49,59 @@ except Exception as e:
 
 db = firestore.client()
 
+# 地域同義語マッピング辞書
+REGION_SYNONYMS = {
+    # 関西・近畿地方
+    '関西': ['大阪府', '京都府', '兵庫県', '奈良県', '滋賀県', '和歌山県'],
+    '近畿': ['大阪府', '京都府', '兵庫県', '奈良県', '滋賀県', '和歌山県'],
+    '関西地方': ['大阪府', '京都府', '兵庫県', '奈良県', '滋賀県', '和歌山県'],
+    '近畿地方': ['大阪府', '京都府', '兵庫県', '奈良県', '滋賀県', '和歌山県'],
+    
+    # 関東地方
+    '関東': ['東京都', '神奈川県', '千葉県', '埼玉県', '茨城県', '栃木県', '群馬県'],
+    '関東地方': ['東京都', '神奈川県', '千葉県', '埼玉県', '茨城県', '栃木県', '群馬県'],
+    
+    # 東海地方
+    '東海': ['愛知県', '岐阜県', '静岡県', '三重県'],
+    '東海地方': ['愛知県', '岐阜県', '静岡県', '三重県'],
+    '中部': ['愛知県', '岐阜県', '静岡県', '三重県', '長野県', '山梨県', '新潟県', '富山県', '石川県', '福井県'],
+    '中部地方': ['愛知県', '岐阜県', '静岡県', '三重県', '長野県', '山梨県', '新潟県', '富山県', '石川県', '福井県'],
+    
+    # 北海道・東北
+    '東北': ['青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県'],
+    '東北地方': ['青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県'],
+    
+    # 中国地方
+    '中国': ['鳥取県', '島根県', '岡山県', '広島県', '山口県'],
+    '中国地方': ['鳥取県', '島根県', '岡山県', '広島県', '山口県'],
+    
+    # 四国地方
+    '四国': ['徳島県', '香川県', '愛媛県', '高知県'],
+    '四国地方': ['徳島県', '香川県', '愛媛県', '高知県'],
+    
+    # 九州・沖縄
+    '九州': ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県'],
+    '九州地方': ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県'],
+    '九州沖縄': ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'],
+    '九州・沖縄': ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'],
+}
+
+def expand_search_terms(search_term):
+    """検索キーワードを同義語で展開する"""
+    if not search_term:
+        return []
+    
+    # 元の検索語を含める
+    expanded_terms = [search_term]
+    
+    # 同義語辞書で展開
+    for synonym, regions in REGION_SYNONYMS.items():
+        if search_term in synonym or synonym in search_term:
+            expanded_terms.extend(regions)
+    
+    # 重複を除去して返す
+    return list(set(expanded_terms))
+
 @app.route('/search', methods=['POST'])
 def search_users():
     try:
@@ -68,7 +121,16 @@ def search_users():
 
         # --- 部分一致検索のための全データ取得とアプリケーション側フィルタリング ---
         found_users = []
+        
+        # 同義語展開情報を記録
+        expanded_hobby_terms = expand_search_terms(search_hobby) if search_hobby else []
+        expanded_birthplace_terms = expand_search_terms(search_birthplace) if search_birthplace else []
+        
         print(f"部分一致検索を実行: 趣味='{search_hobby}', 出身地='{search_birthplace}'")
+        if expanded_hobby_terms and len(expanded_hobby_terms) > 1:
+            print(f"趣味同義語展開: {expanded_hobby_terms}")
+        if expanded_birthplace_terms and len(expanded_birthplace_terms) > 1:
+            print(f"出身地同義語展開: {expanded_birthplace_terms}")
         
         # 全ユーザーデータを取得
         docs = query.stream()
@@ -98,22 +160,35 @@ def search_users():
             return len(matched_words) > 0, matched_words
         
         def matches_birthplace(profile_data, search_term):
-            """出身地の部分一致判定とマッチした単語を返す"""
+            """出身地の部分一致判定とマッチした単語を返す（同義語展開対応）"""
             if not search_term:
                 return True, []
             
             matched_words = []
             
+            # 検索語を同義語で展開
+            expanded_terms = expand_search_terms(search_term)
+            
             # birthplace_keywords配列内の要素で部分一致チェック
             birthplace_keywords = profile_data.get('birthplace_keywords', [])
             for keyword in birthplace_keywords:
+                # 元の検索語での一致
                 if search_term in keyword:
                     matched_words.append(keyword)
+                # 展開された同義語での一致
+                for expanded_term in expanded_terms:
+                    if expanded_term in keyword:
+                        matched_words.append(keyword)
             
             # birthplace文字列でも部分一致チェック
             birthplace = profile_data.get('birthplace', '')
+            # 元の検索語での一致
             if search_term in birthplace:
                 matched_words.append(birthplace)
+            # 展開された同義語での一致
+            for expanded_term in expanded_terms:
+                if expanded_term in birthplace:
+                    matched_words.append(birthplace)
             
             # 重複を除去
             matched_words = list(set(matched_words))
@@ -170,7 +245,13 @@ def search_users():
         return jsonify({
             'success': True,
             'users': found_users,
-            'count': len(found_users)
+            'count': len(found_users),
+            'search_info': {
+                'original_hobby': search_hobby,
+                'original_birthplace': search_birthplace,
+                'expanded_hobby_terms': expanded_hobby_terms,
+                'expanded_birthplace_terms': expanded_birthplace_terms
+            }
         })
 
     except Exception as e:
