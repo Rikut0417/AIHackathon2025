@@ -333,40 +333,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // 戻るボタン（画面左上に固定）
-              Positioned(
-                top: ResponsiveHelper.getSpacing(context, SpacingType.md),
-                left: ResponsiveHelper.getSpacing(context, SpacingType.md),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => Navigator.of(context).pop(),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          color: AppColors.textDark,
-                          size: ResponsiveHelper.getIconSize(context, IconSizeType.medium),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              
               // メインコンテンツ（全体スクロール可能）
               ResponsiveWrapper(
                 child: SingleChildScrollView(
@@ -374,7 +340,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
-                      // ヘッダー（戻るボタンなし）
+                      // ヘッダー
                       _buildHeader(),
                       
                       // 検索情報バー（常に表示）
@@ -433,7 +399,28 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               // タイトル行
               Row(
                 children: [
-                  // 左側スペース削除（戻るボタン分の余白をなくす）
+                  // 戻るボタン
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: AppColors.primaryIndigo,
+                          size: iconSize * 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
+                  // 検索アイコンとタイトル
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -443,7 +430,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     child: Icon(
                       Icons.search,
                       color: AppColors.primaryIndigo,
-                      size: iconSize,
+                      size: iconSize * 0.8,
                     ),
                   ),
                   SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
@@ -457,6 +444,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       ),
                     ),
                   ),
+                  SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.sm)),
                   // ログアウトボタン
                   AppButton(
                     text: 'ログアウト',
@@ -466,6 +454,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       horizontal: ResponsiveHelper.getSpacing(context, SpacingType.sm),
                       vertical: ResponsiveHelper.getSpacing(context, SpacingType.xs),
                     ),
+                    textColor: AppColors.textWhite,
                   ),
                 ],
               ),
@@ -540,63 +529,257 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                 AppCard(
                   margin: EdgeInsets.zero,
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryTeal.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.group_add,
-                          color: AppColors.primaryTeal,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      const Expanded(
-                        child: Text(
-                          '招待したい人のチェックボックスにチェックを入れて、出力ボタンを押してください',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textDark,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      // しおりダウンロードボタン
-                      ElevatedButton.icon(
-                        onPressed: _isDownloadingBooklet ? null : _downloadBooklet,
-                        icon: _isDownloadingBooklet 
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  child: ResponsiveBuilder(
+                    builder: (context, deviceType) {
+                      final isMobile = deviceType == DeviceType.mobile;
+                      
+                      if (isMobile) {
+                        // スマホサイズ: 縦積みレイアウト
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // アイコンと説明文
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryTeal.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.group_add,
+                                    color: AppColors.primaryTeal,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                const Expanded(
+                                  child: Text(
+                                    '招待したい人のチェックボックスにチェックを入れて、出力ボタンを押してください',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.textDark,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            // ボタン
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _copySelectedMentions,
+                                icon: const Icon(Icons.content_copy, size: 20),
+                                label: const Text(
+                                  'メンション出力',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accentCyan,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  minimumSize: const Size(100, 44),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
                               ),
-                            )
-                          : const Icon(Icons.download, size: 16),
-                        label: Text(
-                          _isDownloadingBooklet ? '生成中...' : 'しおりDL',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryIndigo,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          minimumSize: const Size(0, 0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
+                            ),
+                          ],
+                        );
+                      } else {
+                        // デスクトップサイズ: 横並びレイアウト
+                        return Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryTeal.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.group_add,
+                                color: AppColors.primaryTeal,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            const Expanded(
+                              child: Text(
+                                '招待したい人のチェックボックスにチェックを入れて、出力ボタンを押してください',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textDark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            // メンション出力ボタン
+                            ElevatedButton.icon(
+                              onPressed: _copySelectedMentions,
+                              icon: const Icon(Icons.content_copy, size: 20),
+                              label: const Text(
+                                'メンション出力',
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accentCyan,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                minimumSize: const Size(100, 44),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
                   ),
                 ),
               ],
+              
+              // しおりDL機能の説明セクション
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                margin: EdgeInsets.zero,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: ResponsiveBuilder(
+                  builder: (context, deviceType) {
+                    final isMobile = deviceType == DeviceType.mobile;
+                    
+                    if (isMobile) {
+                      // スマホサイズ: 縦積みレイアウト
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // アイコンと説明文
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.download,
+                                  color: AppColors.primaryIndigo,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              const Expanded(
+                                child: Text(
+                                  'サークル活動のしおり作成をお手伝いします、しおりDLボタンを押してください',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textDark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          // ボタン
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _isDownloadingBooklet ? null : _downloadBooklet,
+                              icon: _isDownloadingBooklet 
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.download, size: 20),
+                              label: Text(
+                                _isDownloadingBooklet ? '生成中...' : 'しおりDL',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryIndigo,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                minimumSize: const Size(100, 44),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // デスクトップサイズ: 横並びレイアウト
+                      return Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryIndigo.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.download,
+                              color: AppColors.primaryIndigo,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          const Expanded(
+                            child: Text(
+                              'サークル活動のしおり作成をお手伝いします、しおりDLボタンを押してください',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textDark,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          // しおりダウンロードボタン
+                          ElevatedButton.icon(
+                            onPressed: _isDownloadingBooklet ? null : _downloadBooklet,
+                            icon: _isDownloadingBooklet 
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.download, size: 20),
+                            label: Text(
+                              _isDownloadingBooklet ? '生成中...' : 'しおりDL',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryIndigo,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              minimumSize: const Size(100, 44),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+              ),
             ],
           ),
         );
@@ -713,19 +896,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                             ],
                           ),
                           
-                          const SizedBox(height: AppSpacing.sm),
-                          
-                          // メンション出力ボタン（短いテキスト）
-                          SizedBox(
-                            width: double.infinity,
-                            child: AppButton(
-                              text: isSmallScreen ? 'メンション出力' : 'メンションをコピー',
-                              onPressed: _copySelectedMentions,
-                              backgroundColor: AppColors.accentCyan,
-                              icon: Icons.content_copy,
-                              height: 40,
-                            ),
-                          ),
                         ],
                       );
                     } else {
@@ -751,18 +921,6 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                             ],
                           ),
 
-                          const SizedBox(width: AppSpacing.lg),
-
-                          // メンション出力ボタン
-                          Expanded(
-                            child: AppButton(
-                              text: '選択したメンバーのメンションを出力',
-                              onPressed: _copySelectedMentions,
-                              backgroundColor: AppColors.accentCyan,
-                              icon: Icons.content_copy,
-                              height: 36,
-                            ),
-                          ),
                         ],
                       );
                     }
@@ -803,14 +961,12 @@ class _SearchResultScreenState extends State<SearchResultScreen>
         final spacing = ResponsiveHelper.getSpacing(context, SpacingType.md);
         final smallSpacing = ResponsiveHelper.getSpacing(context, SpacingType.sm);
         
-        return GestureDetector(
-          onTap: () => _toggleUserSelection(result['name'] ?? ''),
-          child: AppCard(
-            margin: cardMargin,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        return AppCard(
+          margin: cardMargin,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
               // ヘッダー行
               Row(
                 children: [
@@ -820,9 +976,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                     onChanged: (_) => _toggleUserSelection(result['name'] ?? ''),
                     activeColor: AppColors.primaryIndigo,
                   ),
-
                   const SizedBox(width: AppSpacing.sm),
-
                   // アバター
                   Container(
                     width: avatarSize,
@@ -844,9 +998,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                       ),
                     ),
                   ),
-
                   SizedBox(width: spacing),
-                  
                   // 名前と部署
                   Expanded(
                     child: Column(
@@ -885,8 +1037,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               SizedBox(height: smallSpacing),
               _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
             ],
-          ),
-        ));
+          ));
       },
     );
   }

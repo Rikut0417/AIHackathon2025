@@ -321,16 +321,26 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: isMobile ? 32 : 40,
-                      height: isMobile ? 32 : 40,
+                      width: isMobile ? 60 : 80,
+                      height: isMobile ? 60 : 80,
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Icon(
-                        Icons.smart_toy,
-                        color: AppColors.textWhite,
-                        size: isMobile ? 20 : 24,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/images/logo.jpg',
+                          width: isMobile ? 60 : 80,
+                          height: isMobile ? 60 : 80,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     SizedBox(width: ResponsiveHelper.getSpacing(context, SpacingType.md)),
@@ -384,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ようこそ！',
+                      'ようこそ！${AuthService().currentUser?.email ?? ''}さん',
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getFontSize(context, FontSizeType.title),
                         fontWeight: FontWeight.bold,
@@ -525,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             controller: _birthplaceController,
-            hintText: '例: 東京都、大阪府、福岡県',
+            hintText: '例: 東京都、大阪府、関東地方',
             prefixIcon: Icons.location_on,
             onSubmitted: (_) => _search(),
           ),
