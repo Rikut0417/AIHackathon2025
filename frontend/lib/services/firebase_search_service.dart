@@ -10,8 +10,8 @@ class FirebaseSearchService {
     return url;
   }
 
-  // 新しいデザインに対応したインスタンスメソッド
-  Future<List<Map<String, dynamic>>> searchProfiles(
+  // 新しいデザインに対応したインスタンスメソッド（同義語展開情報も返す）
+  Future<Map<String, dynamic>> searchProfilesWithInfo(
     String hobby,
     String birthplace,
   ) async {
@@ -31,13 +31,26 @@ class FirebaseSearchService {
       
       if (result['success'] == true) {
         final users = result['users'] as List?;
-        return users?.cast<Map<String, dynamic>>() ?? [];
+        final searchInfo = result['search_info'] as Map<String, dynamic>?;
+        return {
+          'users': users?.cast<Map<String, dynamic>>() ?? [],
+          'search_info': searchInfo ?? {},
+        };
       } else {
         throw Exception(result['error'] ?? 'Unknown error');
       }
     } catch (e) {
       throw Exception('検索に失敗しました: $e');
     }
+  }
+
+  // 後方互換性のために既存メソッドも残す
+  Future<List<Map<String, dynamic>>> searchProfiles(
+    String hobby,
+    String birthplace,
+  ) async {
+    final result = await searchProfilesWithInfo(hobby, birthplace);
+    return result['users'] as List<Map<String, dynamic>>;
   }
 
   static Future<Map<String, dynamic>> searchUsers({

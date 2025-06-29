@@ -32,6 +32,9 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   String? _errorMessage;
   bool _isDownloadingBooklet = false;
   
+  // 同義語展開情報
+  Map<String, dynamic>? _searchInfo;
+  
   // ページネーション関連
   int _currentPage = 0;
   static const int _itemsPerPage = 12;
@@ -95,12 +98,15 @@ class _SearchResultScreenState extends State<SearchResultScreen>
 
     try {
       final service = FirebaseSearchService();
-      final results = await service.searchProfiles(
+      final searchResult = await service.searchProfilesWithInfo(
         widget.hobbies,
         widget.birthplace,
       );
 
       await Future.delayed(const Duration(milliseconds: 500)); // UX向上のための待機
+
+      final results = searchResult['users'] as List<Map<String, dynamic>>;
+      final searchInfo = searchResult['search_info'] as Map<String, dynamic>;
 
       setState(() {
         _searchResults = results.map((result) => <String, dynamic>{
@@ -114,6 +120,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           'matched_hobby_words': result['matched_hobby_words'] as List<dynamic>? ?? [],
           'matched_birthplace_words': result['matched_birthplace_words'] as List<dynamic>? ?? [],
         }).toList();
+        _searchInfo = searchInfo;
         _isLoading = false;
       });
 
