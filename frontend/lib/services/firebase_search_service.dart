@@ -5,7 +5,8 @@ import 'dart:html' as html;
 class FirebaseSearchService {
   static String get baseUrl {
     // dart-defineまたは環境変数から取得
-    const url = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://flask-backend-156065435185.us-central1.run.app');
+    // ローカル開発時は http://localhost:8080、本番時は環境変数で指定
+    const url = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8080');
     return url;
   }
 
