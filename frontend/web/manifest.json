@@ -1,11 +1,11 @@
 {
-    "name": "flutter_app",
-    "short_name": "flutter_app",
+    "name": "Me-Too!（ミートゥー）",
+    "short_name": "Me-Too!",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#6366F1",
+    "theme_color": "#6366F1",
+    "description": "AIを活用したプロフィール検索で、新しい出会いを見つけるアプリ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
