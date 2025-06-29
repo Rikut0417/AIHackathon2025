@@ -27,7 +27,7 @@ class SearchResultScreen extends StatefulWidget {
 
 class _SearchResultScreenState extends State<SearchResultScreen>
     with TickerProviderStateMixin {
-  List<Map<String, String>> _searchResults = [];
+  List<Map<String, dynamic>> _searchResults = [];
   bool _isLoading = true;
   String? _errorMessage;
   bool _isDownloadingBooklet = false;
@@ -103,7 +103,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
       await Future.delayed(const Duration(milliseconds: 500)); // UX向上のための待機
 
       setState(() {
-        _searchResults = results.map((result) => <String, String>{
+        _searchResults = results.map((result) => <String, dynamic>{
           'name': result['name']?.toString() ?? '名前なし',
           'name_roman': result['name_roman']?.toString() ?? 'Unknown Name',
           'hobby': _processHobbyData(result['hobby']),
@@ -111,6 +111,8 @@ class _SearchResultScreenState extends State<SearchResultScreen>
           'department': result['department']?.toString() ?? '部署不明',
           'matched_hobby': result['matched_hobby']?.toString() ?? '',
           'matched_birthplace': result['matched_birthplace']?.toString() ?? '',
+          'matched_hobby_words': result['matched_hobby_words'] as List<dynamic>? ?? [],
+          'matched_birthplace_words': result['matched_birthplace_words'] as List<dynamic>? ?? [],
         }).toList();
         _isLoading = false;
       });
@@ -790,7 +792,7 @@ class _SearchResultScreenState extends State<SearchResultScreen>
   }
 
   /// 個別の結果カードを構築
-  Widget _buildResultCard(Map<String, String> result, int index) {
+  Widget _buildResultCard(Map<String, dynamic> result, int index) {
     return ResponsiveBuilder(
       builder: (context, deviceType) {
         final cardMargin = deviceType == DeviceType.mobile 
@@ -881,9 +883,19 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               SizedBox(height: spacing),
               
               // 詳細情報
-              _buildHighlightInfoRow(Icons.interests, '趣味', result['hobby'] ?? '不明', widget.hobbies),
+              _buildFullWordHighlightInfoRow(
+                Icons.interests, 
+                '趣味', 
+                result['hobby'] ?? '不明', 
+                (result['matched_hobby_words'] as List<dynamic>? ?? []).cast<String>(),
+              ),
               SizedBox(height: smallSpacing),
-              _buildHighlightInfoRow(Icons.location_on, '出身地', result['birthplace'] ?? '不明', widget.birthplace),
+              _buildFullWordHighlightInfoRow(
+                Icons.location_on, 
+                '出身地', 
+                result['birthplace'] ?? '不明', 
+                (result['matched_birthplace_words'] as List<dynamic>? ?? []).cast<String>(),
+              ),
             ],
           ),
         ));
@@ -920,6 +932,48 @@ class _SearchResultScreenState extends State<SearchResultScreen>
               child: HighlightText(
                 text: value,
                 query: query,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: AppColors.textDark,
+                ),
+                isBold: true,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// 完全な単語をハイライトする情報行を構築
+  Widget _buildFullWordHighlightInfoRow(IconData icon, String label, String value, List<String> matchedWords) {
+    return ResponsiveBuilder(
+      builder: (context, deviceType) {
+        final iconSize = ResponsiveHelper.getIconSize(context, IconSizeType.small);
+        final fontSize = ResponsiveHelper.getFontSize(context, FontSizeType.body);
+        final spacing = ResponsiveHelper.getSpacing(context, SpacingType.sm);
+        
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: iconSize,
+              color: AppColors.textLight,
+            ),
+            SizedBox(width: spacing),
+            Text(
+              '$label: ',
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMedium,
+              ),
+            ),
+            Expanded(
+              child: FullWordHighlightText(
+                text: value,
+                matchedWords: matchedWords,
                 style: TextStyle(
                   fontSize: fontSize,
                   color: AppColors.textDark,

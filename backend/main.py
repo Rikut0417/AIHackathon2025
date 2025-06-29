@@ -74,48 +74,58 @@ def search_users():
         docs = query.stream()
         
         def matches_hobby(profile_data, search_term):
-            """趣味の部分一致判定"""
+            """趣味の部分一致判定とマッチした単語を返す"""
             if not search_term:
-                return True
+                return True, []
+            
+            matched_words = []
             
             # hobby_keywords配列内の要素で部分一致チェック
             hobby_keywords = profile_data.get('hobby_keywords', [])
             for keyword in hobby_keywords:
                 if search_term in keyword:
-                    return True
+                    matched_words.append(keyword)
             
             # hobby配列内の要素でも部分一致チェック
             hobby_list = profile_data.get('hobby', [])
             for hobby in hobby_list:
                 if search_term in hobby:
-                    return True
+                    matched_words.append(hobby)
             
-            return False
+            # 重複を除去
+            matched_words = list(set(matched_words))
+            
+            return len(matched_words) > 0, matched_words
         
         def matches_birthplace(profile_data, search_term):
-            """出身地の部分一致判定"""
+            """出身地の部分一致判定とマッチした単語を返す"""
             if not search_term:
-                return True
+                return True, []
+            
+            matched_words = []
             
             # birthplace_keywords配列内の要素で部分一致チェック
             birthplace_keywords = profile_data.get('birthplace_keywords', [])
             for keyword in birthplace_keywords:
                 if search_term in keyword:
-                    return True
+                    matched_words.append(keyword)
             
             # birthplace文字列でも部分一致チェック
             birthplace = profile_data.get('birthplace', '')
             if search_term in birthplace:
-                return True
+                matched_words.append(birthplace)
             
-            return False
+            # 重複を除去
+            matched_words = list(set(matched_words))
+            
+            return len(matched_words) > 0, matched_words
         
         # 各ユーザーをフィルタリング
         for doc in docs:
             profile_data = doc.to_dict()
             
-            hobby_match = matches_hobby(profile_data, search_hobby)
-            birthplace_match = matches_birthplace(profile_data, search_birthplace)
+            hobby_match, hobby_matched_words = matches_hobby(profile_data, search_hobby)
+            birthplace_match, birthplace_matched_words = matches_birthplace(profile_data, search_birthplace)
             
             # 指定された条件に基づくマッチング判定
             is_match = False
@@ -150,6 +160,8 @@ def search_users():
                     "department": profile_data.get('department', '部署不明'),
                     "matched_hobby": search_hobby if search_hobby else None,
                     "matched_birthplace": search_birthplace if search_birthplace else None,
+                    "matched_hobby_words": hobby_matched_words,
+                    "matched_birthplace_words": birthplace_matched_words,
                     "match_type": match_type
                 })
 
